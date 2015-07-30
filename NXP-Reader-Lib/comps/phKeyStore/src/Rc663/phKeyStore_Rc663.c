@@ -61,10 +61,10 @@ phStatus_t phKeyStore_Rc663_FormatKeyEntry(
     uint16_t wNewKeyType 
     )
 {
-    uint8_t PH_MEMLOC_BUF bKey[PH_KEYSTORE_KEY_TYPE_MIFARE_SIZE];
+    uint8_t PH_MEMLOC_BUF bKey[PH_KEYSTORE_KEY_TYPE_MFULC_SIZE]; /*Changed from PH_KEYSTORE_KEY_TYPE_MIFARE_SIZE*/
 
     /* clear key buffer */
-    memset(bKey, 0x00, PH_KEYSTORE_KEY_TYPE_MIFARE_SIZE); /* PRQA S 3200 */
+    memset(bKey, 0x00, PH_KEYSTORE_KEY_TYPE_MFULC_SIZE); /*Changed from PH_KEYSTORE_KEY_TYPE_MIFARE_SIZE*/ /* PRQA S 3200 */
 
     return phKeyStore_Rc663_SetKeyAtPos(pDataParams, wKeyNo, 0, wNewKeyType, bKey, 0);
 }
@@ -107,7 +107,7 @@ phStatus_t phKeyStore_Rc663_SetKeyAtPos(
     /* Retrieve Key type */
     switch(wKeyType)
     {
-        /* MIFARE keys are the only supported keys */
+        /* MIFARE keys are the only supported keys */ /*Not anymore, hopefully*/
     case PH_KEYSTORE_KEY_TYPE_MIFARE:
 
         /* prepare the command to be sent */
@@ -126,6 +126,18 @@ phStatus_t phKeyStore_Rc663_SetKeyAtPos(
     case PH_KEYSTORE_KEY_TYPE_AES256:
     case PH_KEYSTORE_KEY_TYPE_DES:
     case PH_KEYSTORE_KEY_TYPE_2K3DES:
+    
+		/* prepare the command to be sent */
+        bKeyNoInt = (uint8_t)(wKeyNo << 1);
+
+        PH_CHECK_SUCCESS_FCT(statusTmp, phKeyStore_Rc663_StoreKeyE2_Int(
+            pDataParams,
+            bKeyNoInt,
+            pNewKey,
+            1));
+
+        break;
+		
     case PH_KEYSTORE_KEY_TYPE_3K3DES:
 
         return PH_ADD_COMPCODE(PH_ERR_UNSUPPORTED_PARAMETER, PH_COMP_KEYSTORE);
@@ -175,8 +187,8 @@ phStatus_t phKeyStore_Rc663_SetFullKeyEntry(
     /* set keys */
     for (i = 0; i < wNoOfKeys; ++i)
     {
-        PH_CHECK_SUCCESS_FCT(statusTmp, phKeyStore_Rc663_SetKeyAtPos(pDataParams, wKeyNo,  i, wNewKeyType, &pNewKeys[i*PH_KEYSTORE_KEY_TYPE_MIFARE_SIZE], wKeyVersion));
-    }
+        PH_CHECK_SUCCESS_FCT(statusTmp, phKeyStore_Rc663_SetKeyAtPos(pDataParams, wKeyNo,  i, wNewKeyType, &pNewKeys[i*PH_KEYSTORE_KEY_TYPE_MFULC_SIZE], wKeyVersion));
+    } /*Changed from PH_KEYSTORE_KEY_TYPE_MIFARE_SIZE*/
 
     return PH_ADD_COMPCODE(PH_ERR_SUCCESS, PH_COMP_KEYSTORE);
 }
@@ -323,7 +335,7 @@ phStatus_t phKeyStore_Rc663_StoreKeyE2_Int(
     PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_WriteRegister(pDataParams->pHalDataParams, PH_KEYSTORE_RC663_REG_FIFODATA, bKeyNumber));
 
     /* Write each single key byte */
-    for (wIndex = 0; wIndex < (bNumKeys * PH_KEYSTORE_KEY_TYPE_MIFARE_SIZE); ++wIndex)
+    for (wIndex = 0; wIndex < (bNumKeys * PH_KEYSTORE_KEY_TYPE_MFULC_SIZE); ++wIndex) /*Changed from PH_KEYSTORE_KEY_TYPE_MIFARE_SIZE*/
     {
         PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_WriteRegister(pDataParams->pHalDataParams, PH_KEYSTORE_RC663_REG_FIFODATA, pKey[wIndex]));
     }

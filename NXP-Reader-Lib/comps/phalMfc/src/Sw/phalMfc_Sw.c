@@ -23,6 +23,7 @@
 *
 */
 
+#include <stdio.h>
 #include <ph_Status.h>
 #include <phhalHw.h>
 #include <phalMfc.h>
@@ -69,6 +70,7 @@ phStatus_t phalMfc_Sw_Authenticate(
 {
     phStatus_t  PH_MEMLOC_REM statusTmp;
     uint8_t     PH_MEMLOC_REM aKey[PHHAL_HW_MFC_KEY_LENGTH * 2];
+    uint8_t     PH_MEMLOC_REM aKeyUC[PHHAL_HW_MFULC_KEY_LENGTH];
     uint8_t *   PH_MEMLOC_REM pKey;
     uint16_t    PH_MEMLOC_REM bKeystoreKeyType;
 
@@ -99,12 +101,11 @@ phStatus_t phalMfc_Sw_Authenticate(
             pDataParams->pKeyStoreDataParams,
             wKeyNo,
             wKeyVersion,
-            sizeof(aKey),
-            aKey,
+            sizeof(aKeyUC),
+            aKeyUC,
             &bKeystoreKeyType));
-
         /* check key type */
-        if (bKeystoreKeyType != PH_KEYSTORE_KEY_TYPE_MIFARE)
+        if ((bKeystoreKeyType != PH_KEYSTORE_KEY_TYPE_MIFARE) && (bKeystoreKeyType != PH_KEYSTORE_KEY_TYPE_2K3DES))
         {
             return PH_ADD_COMPCODE(PH_ERR_INVALID_PARAMETER, PH_COMP_HAL);
         }
@@ -120,17 +121,28 @@ phStatus_t phalMfc_Sw_Authenticate(
             /* Use KeyB */
             pKey = &aKey[PHHAL_HW_MFC_KEY_LENGTH];
         }
-        else
+        else if ((bKeyType & 0x7F) == PHHAL_HW_MFULC_KEY)
         {
+            /* Use KeyUC */
+            pKey = aKeyUC;
+        }
+        else
+        {	
             return PH_ADD_COMPCODE(PH_ERR_INVALID_PARAMETER, PH_COMP_HAL);
         }
 
-        return phpalMifare_MfcAuthenticate(
+        /*return phpalMifare_MfcAuthenticate(
             pDataParams->pPalMifareDataParams,
             bBlockNo,
             bKeyType,
             pKey,
-            &pUid[bUidLength - 4]);
+            &pUid[bUidLength - 4]);*/
+            return phpalMifare_MfcAuthenticate(
+            pDataParams->pPalMifareDataParams,
+            bBlockNo,
+            bKeyType,
+            pKey,
+            &pUid[0]); /**Changed from last 4 bytes to first 4 bytes*/
     }
 }
 

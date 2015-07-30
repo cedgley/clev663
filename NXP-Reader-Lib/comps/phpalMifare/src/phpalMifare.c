@@ -445,7 +445,6 @@ phStatus_t phpalMifare_MfcAuthenticate(
 
         return status;
     }
-
     /* perform operation on active layer */
     switch (PH_GET_COMPID(pDataParams))
     {

@@ -23,6 +23,7 @@
 *
 */
 
+#include <stdio.h> /*Remove later*/
 #include <ph_Status.h>
 #include <phbalReg.h>
 #include <phhalHw.h>
@@ -2279,6 +2280,7 @@ phStatus_t phhalHw_Rc663_MfcAuthenticate(
     PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_Rc663_Cmd_LoadKey(
         pDataParams,
         pKey));
+	puts("boop1");
 
     /* execute Authenticate command */
     PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_Rc663_MfcAuthenticate_Int(
@@ -2286,7 +2288,7 @@ phStatus_t phhalHw_Rc663_MfcAuthenticate(
         bBlockNo,
         bKeyType,
         pUid));
-
+	puts("boop2");
     return PH_ADD_COMPCODE(PH_ERR_SUCCESS, PH_COMP_HAL);
 }
 

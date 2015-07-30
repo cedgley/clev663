@@ -76,7 +76,7 @@ phalT1T.o phalT1T_Sw.o phbalReg_Stub.o phOsal_Stub.o
 OBJS:= ${OBJS-Y:%.o=${OBJ_DIR}/%.o}
 
 #export CFLAGS:=-Wall ${EXTRA_FLAGS} -O0 -g
-export CFLAGS:=${EXTRA_FLAGS} -O0 -Wall
+export CFLAGS:=${EXTRA_FLAGS} -O0
 
 vpath %.c $(SRC_DIR)
 
@@ -88,6 +88,7 @@ clean:
 	@echo "Cleaning Up"
 	@rm -rf $(OBJ_DIR)/*
 	@rm -rf $(OUT_DIR)/*
+	@rm clev663
 
 dirs:
 	@if test ! -d $(OBJ_DIR); then echo "Creating $(OBJ_DIR)!"; mkdir -p $(OBJ_DIR); fi

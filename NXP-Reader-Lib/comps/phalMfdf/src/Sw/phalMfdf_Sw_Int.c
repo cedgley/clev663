@@ -477,6 +477,7 @@ phStatus_t phalMfdf_Sw_Int_Write_Plain(
         wFrameLen = PHAL_MFDF_MAXDFAPDU_SIZE;
     }
     wIndex = 0;
+    if(wIndex);
 
     if (wTotalLen == 0x0000)
     {
@@ -794,6 +795,7 @@ phStatus_t phalMfdf_Sw_Int_IsoRead(
 
     /* First put everything on the reader Rx buffer upto buffer size - 60 */
     wRxlen = *pBytesRead;
+    if(wRxlen);
     pRecv = *ppRxBuffer;
 
     if ((status != PH_ERR_SUCCESS) && ((status & PH_ERR_MASK) != PH_ERR_SUCCESS_CHAINING))
@@ -849,6 +851,7 @@ phStatus_t phalMfdf_Sw_Int_IsoRead(
 
     /* Size of MAC bytes */
     wTmp = 0x08;
+    if(wTmp);
 
     if (status == PH_ERR_SUCCESS)
     {

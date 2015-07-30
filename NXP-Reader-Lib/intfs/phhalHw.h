@@ -591,6 +591,14 @@ extern "C" {
 #define PHHAL_HW_MFC_KEYB               0x0BU   /**< MIFARE Classic Key Type B. */
 #define PHHAL_HW_MFC_KEY_LENGTH         0x06U   /**< Length of a MIFARE Classic key (for completeness). */
     /*@}*/
+    
+        /**
+    * \name MIFARE Ultralight C Authenticate Options
+    */
+    /*@{*/
+#define PHHAL_HW_MFULC_KEY              0x0CU   /**< MIFARE Classic Key Type A. */
+#define PHHAL_HW_MFULC_KEY_LENGTH       0x16U   /**< Length of a MIFARE Classic key (for completeness). */
+    /*@}*/
 
     /**
     * \name BAL Connection types

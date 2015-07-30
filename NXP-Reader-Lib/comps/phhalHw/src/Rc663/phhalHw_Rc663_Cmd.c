@@ -364,7 +364,7 @@ phStatus_t phhalHw_Rc663_Cmd_LoadKey(
         bIrq0WaitFor,
         bIrq1WaitFor,
         pKey,
-        PHHAL_HW_RC663_MFC_KEY_LENGTH,
+        PHHAL_HW_RC663_MFUC_KEY_LENGTH,
         0,
         NULL,
         NULL);

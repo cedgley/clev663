@@ -162,6 +162,7 @@ phStatus_t phKeyStore_Rc663_Init(
 #define PH_KEYSTORE_KEY_TYPE_MIFARE         0x06U   /**< MIFARE (R) Key. */
 
 #define PH_KEYSTORE_KEY_TYPE_MIFARE_SIZE    0x0CU   /**< Size of an MIFARE Key. */
+#define PH_KEYSTORE_KEY_TYPE_MFULC_SIZE     0x10U   /**< Size of an Ultralight Key. */
 #define PH_KEYSTORE_KEY_TYPE_AES128_SIZE    0x10U   /**< Size of an AES128 Key. */
 /*@}*/
 

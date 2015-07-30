@@ -118,6 +118,13 @@
 #define PHHAL_HW_RC663_MFC_KEY_LENGTH       0x06U   /**< Lengh of a MIFARE(R) Classic key. */
 /*@}*/
 
+/** \name MIFARE(R) Ultralight C stuff
+*/
+/*@{*/
+#define PHHAL_HW_RC663_MFUC_AUTH_CMD        0x1AU   /**< MIFARE(R) Ultralight C command code. */
+#define PHHAL_HW_RC663_MFUC_KEY_LENGTH      0x16U   /**< Lengh of a MIFARE(R) Ultralight C key. */
+/*@}*/
+
 /** \name Custom command option
 */
 /*@{*/

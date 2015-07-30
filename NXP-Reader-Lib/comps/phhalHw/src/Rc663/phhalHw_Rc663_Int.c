@@ -22,6 +22,7 @@
 *  CHu: Generated 27. April 2010
 *
 */
+#include <stdio.h> /*Remove later*/
 #include <phhalHw.h>
 #include <ph_RefDefs.h>
 
@@ -1856,8 +1857,13 @@ phStatus_t phhalHw_Rc663_MfcAuthenticate_Int(
     {
         aTxBuffer[0] = PHHAL_HW_RC663_MFC_AUTHB_CMD;
     }
+    else if (bKeyType == PHHAL_HW_MFULC_KEY)
+    {
+		aTxBuffer[0] = PHHAL_HW_RC663_MFUC_AUTH_CMD;
+	}
     else
     {
+		puts("fail");
         return PH_ADD_COMPCODE(PH_ERR_INVALID_PARAMETER, PH_COMP_HAL);
     }
 
@@ -1866,10 +1872,20 @@ phStatus_t phhalHw_Rc663_MfcAuthenticate_Int(
 
     /* set serial number */
     memcpy(&aTxBuffer[2], pUid, 4);  /* PRQA S 3200 */
+    /*printf("pUid: %02x %02x %02x %02x %02x %02x\n",
+			pUid[0], pUid[1], pUid[2],
+			pUid[3], pUid[4], pUid[5]);
+
+    printf("aTxBuffer: %02x %02x %02x %02x %02x %02x\n",
+			aTxBuffer[0], aTxBuffer[1], aTxBuffer[2],
+			aTxBuffer[3], aTxBuffer[4], aTxBuffer[5]);*/
 
     /* Set wait IRQs */
     bIrq0WaitFor = PHHAL_HW_RC663_BIT_RXIRQ;
     bIrq1WaitFor = PHHAL_HW_RC663_BIT_TIMER1IRQ;
+    
+    PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_ReadRegister(pDataParams, PHHAL_HW_RC663_REG_ERROR, &bRegister));
+    printf("1Error Register %02x\n",bRegister);
 
     /* Execute Authenticate command */
     PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_Rc663_Command_Int(
@@ -1886,8 +1902,14 @@ phStatus_t phhalHw_Rc663_MfcAuthenticate_Int(
 
     /* Check auth success */
     PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_ReadRegister(pDataParams, PHHAL_HW_RC663_REG_STATUS, &bRegister));
+    printf("Status Register %02x\n",bRegister);
+    
+    PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_ReadRegister(pDataParams, PHHAL_HW_RC663_REG_ERROR, &bRegister));
+    printf("2Error Register %02x\n",bRegister);
+    
     if (!(bRegister & PHHAL_HW_RC663_BIT_CRYPTO1ON))
     {
+		puts("fail");
         return PH_ADD_COMPCODE(PH_ERR_AUTH_ERROR, PH_COMP_HAL);
     }
 

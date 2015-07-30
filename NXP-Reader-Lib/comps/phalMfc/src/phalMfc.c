@@ -66,7 +66,6 @@ phStatus_t phalMfc_Authenticate(
     PH_LOG_HELPER_EXECUTE(PH_LOG_OPTION_CATEGORY_ENTER);
 	PH_ASSERT_NULL (pDataParams);
 	PH_ASSERT_NULL (pUid);
-
     if (PH_GET_COMPCODE(pDataParams) != PH_COMP_AL_MFC)
     {
 		status = PH_ADD_COMPCODE(PH_ERR_INVALID_DATA_PARAMS, PH_COMP_AL_MFC);
@@ -95,7 +94,6 @@ phStatus_t phalMfc_Authenticate(
     PH_LOG_HELPER_ADDSTRING(PH_LOG_LOGTYPE_INFO, bFunctionName);
     PH_LOG_HELPER_ADDPARAM_UINT16(PH_LOG_LOGTYPE_INFO, status_log, &status);
     PH_LOG_HELPER_EXECUTE(PH_LOG_OPTION_CATEGORY_LEAVE);
-
     return status;
 }
 

@@ -23,6 +23,7 @@
 *
 */
 
+#include <stdio.h> /*remove later*/
 #include <phhalHw.h>
 #include <ph_RefDefs.h>
 

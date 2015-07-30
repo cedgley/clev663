@@ -180,20 +180,20 @@ static /* const */ uint8_t Key[6] = {0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU};
 static /* const */ uint8_t Original_Key[6] = {0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU};
 
 /* Set the key for the Mifare (R) Ultralight C cards. */
-/*static*/ /* const */ /*uint8_t KeyUC[16] =	{
-										0xFFU, 0xFFU, 0xFFU, 0xFFU, \
-										0xFFU, 0xFFU, 0xFFU, 0xFFU, \
-										0xFFU, 0xFFU, 0xFFU, 0xFFU, \
-										0xFFU, 0xFFU, 0xFFU, 0xFFU
-										};*/
+static /* const */ uint8_t KeyUC[16] =	{
+										0x49U, 0x45U, 0x4DU, 0x4BU, \
+										0x41U, 0x45U, 0x52U, 0x42U, \
+										0x21U, 0x4EU, 0x41U, 0x43U, \
+										0x55U, 0x4FU, 0x59U, 0x46U
+										};
 
 // Don't change the following line
-/*static*/ /* const */ /*uint8_t Original_KeyUC[16] = {
+static /* const */ uint8_t Original_KeyUC[16] = {
 												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
 												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
 												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
 												0xFFU, 0xFFU, 0xFFU, 0xFFU
-												};*/
+												};
 
 /***********************************************************************************************
  * \brief     Prints the UID.
@@ -338,8 +338,33 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
 										0x65U, 0x6eU, 0x63U, 0x65U};
     int page;
     int shutdown = 0;
+    int cont     = 0;
+    char opt;
+    
 
     PH_UNUSED_VARIABLE(bGtLen);
+    
+    /*while(!cont){
+		printf("w - write\nd - detect\ne - exit\n");
+		scanf("%c", &opt);
+		switch(opt)
+		{
+			case 'w':
+				printf("Not yet implemented\n");
+				break;
+			case 'd':
+				cont = 1;
+				break;
+			case 'e':
+				shutdown = 1;
+				cont = 1;
+				break;
+			default:
+				printf("Please choose: w d e\n");
+				cont = 0;
+				break;
+		}
+	}*/
 
     while(!shutdown)
         {
@@ -390,20 +415,20 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                 /* Loop through all the Type A tags detected and print their UIDs */
                 for (loop = 0; loop < wNumberOfTags; loop++)
                     {
-                    DEBUG_PRINTF ("\nCard %d:",loop + 1);
+                    /*DEBUG_PRINTF ("\nCard %d:",loop + 1);
                     DEBUG_PRINTF ("\nUID: ");
                     PRINT_BUFF(pDataParams->sTypeATargetInfo.aTypeA_I3P3[loop].aUid,
-                            pDataParams->sTypeATargetInfo.aTypeA_I3P3[loop].bUidSize);
+                            pDataParams->sTypeATargetInfo.aTypeA_I3P3[loop].bUidSize);*/
                     if(loop == 0)
                         {
-                        DEBUG_PRINTF("\nAtqa:");
+                        /*DEBUG_PRINTF("\nAtqa:");
                         PRINT_BUFF(pDataParams->sTypeATargetInfo.aTypeA_I3P3[loop].aAtqa, 2);
                         DEBUG_PRINTF("\nSak: ");
                         PRINT_BUFF(pDataParams->sTypeATargetInfo.aTypeA_I3P3[loop].aSak, 1);
-                        DEBUG_PRINTF ("\n");
+                        DEBUG_PRINTF ("\n");*/
 
                         if (0x08 == (pDataParams->sTypeATargetInfo.aTypeA_I3P3[loop].aSak[0] & 0x08))
-                            {
+   /* */                     {
                             DEBUG_PRINTF("\nProduct: MIFARE Classic\n");
 
                             DEBUG_PRINTF("\nThe original key is:                ");
@@ -483,14 +508,14 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                             DEBUG_PRINTF("\nProduct: MIFARE Ultralight C\n");
 
                             /*DEBUG_PRINTF("\nThe original key is:                ");
-                            PRINT_BUFF(&Original_Key[0], 6);
+                            PRINT_BUFF(&Original_KeyUC[0], 16);
                             DEBUG_PRINTF("\nThe used key for authentication is: ");
-                            PRINT_BUFF(&Key[0], 6);*/
+                            PRINT_BUFF(&KeyUC[0], 16);*/
 
                             /* load a Key to the Store */
                             /* Note: If You use Key number 0x00, be aware that in SAM
                               this Key is the 'Host authentication key' !!! */
-                            status = phKeyStore_FormatKeyEntry(&SwkeyStore, 1, PH_KEYSTORE_KEY_TYPE_MIFARE);
+                            status = phKeyStore_FormatKeyEntry(&SwkeyStore, 1, PH_KEYSTORE_KEY_TYPE_2K3DES);
 
                             /* First step for us is to authenticate with the Key at the Mifare
                              * Classic in the field.
@@ -500,7 +525,7 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                              * the blocks 4, 5, 6, 7.
                              */
                             /* Mifare Ultralight C card, set Key Store */
-                            status = phKeyStore_SetKey(&SwkeyStore, 1, 0, PH_KEYSTORE_KEY_TYPE_MIFARE, &Key[0], 0);
+                            status = phKeyStore_SetKey(&SwkeyStore, 1, 0, PH_KEYSTORE_KEY_TYPE_2K3DES, &KeyUC[0], 0);
                             CHECK_STATUS(status);
 
                             DEBUG_PRINTF("\nSet Key Store successful\n");
@@ -510,12 +535,21 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                             /* phKeyStore_SetKey */
                             status = phalMfc_Sw_Init(&alMfc, sizeof(phalMfc_Sw_DataParams_t), &palMifare, &SwkeyStore);
                             CHECK_STATUS(status);
+                            //DEBUG_PRINTF("\nMfc_Sw_Init successful\n");
 
                             /* Mifare Classic card, send authentication for sector 0 */
                             bUidSize = pDataParams->sTypeATargetInfo.aTypeA_I3P3[0].bUidSize;
                             memcpy( bUid, pDataParams->sTypeATargetInfo.aTypeA_I3P3[0].aUid, bUidSize );  /* PRQA S 3200 */
 
-                           /* status = phalMfc_Authenticate(&alMfc, 0, PHHAL_HW_MFC_KEYA, 1, 0, bUid, bUidSize);*/
+            /**/            status = phalMfc_Authenticate(&alMfc, 8, PHHAL_HW_MFULC_KEY, 1, 0, bUid, bUidSize);
+														/*void * pDataParams,
+														uint8_t bBlockNo,
+														uint8_t bKeyType,
+														uint16_t wKeyNumber,
+														uint16_t wKeyVersion,
+														uint8_t * pUid,
+														uint8_t bUidLength*/
+                            CHECK_STATUS(status);
 
                             if ((status & PH_ERR_MASK) != PH_ERR_SUCCESS)
                                 {
@@ -529,7 +563,7 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                                 page = 8;
 
                                 /* Mifare Classic card, send authentication for sector 1 */
-                                /*status = phalMfc_Authenticate(&alMfc, 6, PHHAL_HW_MFC_KEYA, 1, 0, bUid, bUidSize);*/
+                                //status = phalMfc_Authenticate(&alMfc, 6, PHHAL_HW_MFC_KEYA, 1, 0, bUid, bUidSize);
 
                                 /* fill block with data */
                                 Fill_Block(bDataBuffer, 15);
@@ -538,8 +572,8 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
 								memcpy(bDataBuffer, bDataWriteTest, 16);
 
                                 /* Write data @ block %page */
-                                PH_CHECK_SUCCESS_FCT(status, phalMfc_Write_Block(&alMfc, page, bDataBuffer));
-                                DEBUG_PRINTF("\nWrite successful 16 bytes");
+                                //PH_CHECK_SUCCESS_FCT(status, phalMfc_Write_Block(&alMfc, page, bDataBuffer));
+                                //DEBUG_PRINTF("\nWrite successful 16 bytes");
 
                                 /* Empty the bDataBuffer */
                                 memset(bDataBuffer, '\0', DATA_BUFFER_LEN);
@@ -547,10 +581,10 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                                 /* Read the just written data.
                                  * In one reading action we always get the whole Block.
                                  */
-                                DEBUG_PRINTF("\nReading the just written 16 bytes");
+                                DEBUG_PRINTF("\nReading\n");
                                 PH_CHECK_SUCCESS_FCT(status, phalMfc_Read(&alMfc, page, bDataBuffer));
 
-                                DEBUG_PRINTF("\nThe content of Block %d is:\n", page);
+                                DEBUG_PRINTF("The content of Block %d is:\n", page);
                                 for (loop = 0; loop < 4; loop++)
                                     {
                                     PRINT_BUFF(&bDataBuffer[loop*4], 4);
@@ -647,12 +681,12 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                 }
             }
 
-        status = phpalI14443p4_ResetProtocol(&palI14443p4);
-        CHECK_SUCCESS(status);
-        status = phOsal_Timer_Wait(&osal, 1, 1000); // wait 1 second before next detection
-        CHECK_SUCCESS(status);
-        status = phhalHw_FieldReset(&halReader);
-        CHECK_SUCCESS(status);
+			status = phpalI14443p4_ResetProtocol(&palI14443p4);
+			CHECK_SUCCESS(status);
+			status = phOsal_Timer_Wait(&osal, 1, 1000); // wait 1 second before next detection
+			CHECK_SUCCESS(status);
+			status = phhalHw_FieldReset(&halReader);
+			CHECK_SUCCESS(status);
         }
         
         DEBUG_PRINTF("Exited Correctly\n");
@@ -716,6 +750,7 @@ int main (void)
     {
 		DEBUG_PRINTF("No Reader Detected\n");
 		status = PH_ADD_COMPCODE(PH_ERR_INTERFACE_ERROR, PH_COMP_HAL);
+		return 0;
 	}
     CHECK_STATUS(status);
     DEBUG_PRINTF("\nReader chip RC663: 0x%02x\n", bDataBuffer[0]);
@@ -800,6 +835,9 @@ int main (void)
 
     DiscLoopInit(&discLoop);
     DiscLoopDemo(&discLoop);
+
+    status = phbalReg_ClosePort(&balReader);
+    CHECK_SUCCESS(status);
 
     return 0;
 }

@@ -145,7 +145,7 @@ phStatus_t phbalReg_Stub_Exchange(phbalReg_Stub_DataParams_t * pDataParams, uint
     fds[0].events = POLLIN;
     fds[0].revents = 0;
 
-    n = poll(fds, 1, 1000);
+    n = poll(fds, 1, 2000);
     if(n < 0) {
       printf("Error in poll: %s\n", strerror(errno));
       *pRxLength = 0;

@@ -23,6 +23,7 @@
 *
 */
 
+#include <stdio.h> /*Remove later*/
 #include <ph_Status.h>
 #include <phKeyStore.h>
 #include <ph_RefDefs.h>
