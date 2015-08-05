@@ -41,20 +41,11 @@ SRC_DIR:=$(CURDIR)/linux \
  $(CURDIR)/NXP-Reader-Lib/comps/phpalI18092mT/src/ \
  $(CURDIR)/NXP-Reader-Lib/comps/phpalI18092mT/src/Sw/ \
  $(CURDIR)/NXP-Reader-Lib/comps/phalT1T/src/ \
- $(CURDIR)/NXP-Reader-Lib/comps/phalT1T/src/Sw/
+ $(CURDIR)/NXP-Reader-Lib/comps/phalT1T/src/Sw/ \
 
 
 # Include dirs
-INCLUDE_DIR:=-I$(CURDIR)/include \
--I$(CURDIR)/NXP-Reader-Lib/intfs \
--I$(CURDIR)/NXP-Reader-Lib/types \
--I$(CURDIR)/NXP-Reader-Lib/comps/phalMfc/src/Sw \
--I$(CURDIR)/NXP-Reader-Lib/comps/phalMfdf/src/ \
--I$(CURDIR)/NXP-Reader-Lib/comps/phpalI14443p4/src/Sw/ \
--I$(CURDIR)/NXP-Reader-Lib/comps/phbalReg/src/Stub/ \
--I$(CURDIR)/NXP-Reader-Lib/comps/phalMful/src/Sw/ \
--I$(CURDIR)/NXP-Reader-Lib/comps/phpalI18092mT/src/Sw/ \
--I$(CURDIR)/NXP-Reader-Lib/comps/phalT1T/src/
+INCLUDE_DIR:=-I$(CURDIR)/include -I$(CURDIR)/NXP-Reader-Lib/intfs -I$(CURDIR)/NXP-Reader-Lib/types -I$(CURDIR)/NXP-Reader-Lib/comps/phalMfc/src/Sw -I$(CURDIR)/NXP-Reader-Lib/comps/phalMfdf/src/ -I$(CURDIR)/NXP-Reader-Lib/comps/phpalI14443p4/src/Sw/ -I$(CURDIR)/NXP-Reader-Lib/comps/phbalReg/src/Stub/ -I$(CURDIR)/NXP-Reader-Lib/comps/phalMful/src/Sw/ -I$(CURDIR)/NXP-Reader-Lib/comps/phpalI18092mT/src/Sw/ -I$(CURDIR)/NXP-Reader-Lib/comps/phalT1T/src/
 
 # Library source top level directory
 LIB_DIR:=lib
@@ -75,8 +66,7 @@ phalT1T.o phalT1T_Sw.o phbalReg_Stub.o phOsal_Stub.o
 
 OBJS:= ${OBJS-Y:%.o=${OBJ_DIR}/%.o}
 
-#export CFLAGS:=-Wall ${EXTRA_FLAGS} -O0 -g
-export CFLAGS:=${EXTRA_FLAGS} -O0 -Wall
+export CFLAGS:=-Wall ${EXTRA_FLAGS} -O0 -g
 
 vpath %.c $(SRC_DIR)
 
@@ -96,9 +86,9 @@ dirs:
 rebuild:	clean all
 
 clev663:	$(OBJS)
-	@$(CC) -rdynamic -o$@ $(OBJS) -L$(LIB_DIR) $(LIBS)
-	@echo "Compilation complete."
+	@echo "Linking: $(@F)"
+	$(CC) -rdynamic -o$@ $(OBJS) -L$(LIB_DIR) $(LIBS)
 
 $(OBJ_DIR)/%.o: %.c
-	@$(CC) $(CFLAGS) $(INCLUDE_DIR) -c -MMD -MP -MF"$(@:%.o=%.d)" -o"$@" "$<"
-
+	@echo 'Building: $<'
+	$(CC) $(CFLAGS) $(INCLUDE_DIR) -c -MMD -MP -MF"$(@:%.o=%.d)" -o"$@" "$<"

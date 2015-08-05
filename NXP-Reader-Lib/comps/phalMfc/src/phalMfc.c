@@ -23,6 +23,7 @@
 *
 */
 
+#include <stdio.h>
 #include <ph_Status.h>
 #include <phalMfc.h>
 #include "phalMfc_Int.h"
@@ -215,7 +216,30 @@ phStatus_t phalMfc_ReadValue(
     
     return status;
 }
+    
+phStatus_t phalMfc_Write_Block(
+                         void * pDataParams,
+                         uint8_t bBlockNo,
+                         uint8_t * pBlockData
+                         )
+{
+    int i, j = 0;
+    phStatus_t PH_MEMLOC_REM status;
+    uint8_t pBlockDataWrite[4];
+    
+	for(i = 0; i < 4; i++)
+	{
+		memcpy(pBlockDataWrite, &pBlockData[i*4], 4);
+		status = phalMfc_Write(pDataParams, bBlockNo + i, pBlockDataWrite);
+		for(j = 0; j < 4; j++) printf(" %02X", pBlockDataWrite[j]);
+		printf("\n");
+	}
 
+		//status = 0;
+	//}
+    return status;
+}
+	
 phStatus_t phalMfc_Write(
                          void * pDataParams,
                          uint8_t bBlockNo,

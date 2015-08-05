@@ -240,7 +240,7 @@ phStatus_t phalMfc_Sw_WriteValue(
                                  )
 {
     phStatus_t  PH_MEMLOC_REM statusTmp;
-    uint8_t     PH_MEMLOC_REM bBlockData[PHAL_MFC_DATA_BLOCK_LENGTH];
+    uint8_t     PH_MEMLOC_REM bBlockData[PHAL_MFC_VALUE_BLOCK_LENGTH];
 
     /* build a valid value block */
     PH_CHECK_SUCCESS_FCT(statusTmp, phalMfc_Int_CreateValueBlock(pValue, bAddrData,bBlockData ));

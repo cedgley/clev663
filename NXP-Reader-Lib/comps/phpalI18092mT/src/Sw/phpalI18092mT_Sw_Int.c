@@ -84,7 +84,7 @@ phStatus_t phpalI18092mT_Sw_ValidateAndNormalizeResponseFrame(
     phStatus_t  PH_MEMLOC_REM bOffset = 0;
     uint8_t     PH_MEMLOC_REM bPfb;
 
-    /* TODO: Check for technology type detected and set the DRi by possibly 
+    /* TODO: Check for technology type detected and set the DRi by possibly
        reading the baud rate info from some hardware register. */
 
     /* At 106kbps all fields are off-set by one. */
@@ -588,7 +588,7 @@ phStatus_t phpalI18092mT_Sw_TransceivePdu(
                     //pDataParams->bPni = PHPAL_I18092MT_SW_INCREMENT_PNI(pDataParams->bPni);
                 }
             }
-            else 
+            else
             {
                 /* Set error code */
                 status = PH_ADD_COMPCODE(PH_ERR_PROTOCOL_ERROR, PH_COMP_PAL_I18092MT);
@@ -642,6 +642,8 @@ phStatus_t phpalI18092mT_Sw_StartRecv(
     pDataParams->pSet_Interrupt(PH_ON);
 
     PH_ADD_COMPCODE(PH_ERR_SUCCESS, PH_COMP_PAL_I18092MT);
+
+    return status;
 }
 
 void phpalI18092mT_Sw_RtoxCallBck(uint32_t TimerId, void *pContext)
@@ -672,7 +674,7 @@ void phpalI18092mT_Sw_RtoxCallBck(uint32_t TimerId, void *pContext)
                                         &pRtoxResBuf,
                                         &wRtoxResLen);
     }
- 
+
     if((pDataParams->rtoxStatus & PH_COMP_MASK) == PH_ERR_SUCCESS)
     {
         pDataParams->rtoxStatus = phpalI18092mT_Sw_ValidateAndNormalizeResponseFrame(
@@ -695,7 +697,7 @@ void phpalI18092mT_Sw_RtoxCallBck(uint32_t TimerId, void *pContext)
         }
     }
 
-    if(((pDataParams->rtoxStatus & PH_COMP_MASK) == PH_ERR_SUCCESS) && 
+    if(((pDataParams->rtoxStatus & PH_COMP_MASK) == PH_ERR_SUCCESS) &&
        (pPayload != NULL) && (pNormalizedResponse != NULL))     /* NULL check added to avoid QAC warning */
     {
         if((PayloadLength != wRtoxReqLen) || (pPayload[0] != pRtoxReqBuf[0]) ||

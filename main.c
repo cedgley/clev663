@@ -179,6 +179,22 @@ static /* const */ uint8_t Key[6] = {0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU};
 // Don't change the following line
 static /* const */ uint8_t Original_Key[6] = {0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU};
 
+/* Set the key for the Mifare (R) Ultralight C cards. */
+/*static*/ /* const */ /*uint8_t KeyUC[16] =	{
+										0xFFU, 0xFFU, 0xFFU, 0xFFU, \
+										0xFFU, 0xFFU, 0xFFU, 0xFFU, \
+										0xFFU, 0xFFU, 0xFFU, 0xFFU, \
+										0xFFU, 0xFFU, 0xFFU, 0xFFU
+										};*/
+
+// Don't change the following line
+/*static*/ /* const */ /*uint8_t Original_KeyUC[16] = {
+												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
+												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
+												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
+												0xFFU, 0xFFU, 0xFFU, 0xFFU
+												};*/
+
 /***********************************************************************************************
  * \brief     Prints the UID.
  *
@@ -315,10 +331,17 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
     uint8_t       bGtLen=0;    /* Gt length */
     uint8_t       bUid[PHAC_DISCLOOP_I3P3A_MAX_UID_LENGTH];
     uint8_t       bUidSize;
+ /* uint8_t		  bDataWrite[4]		 = {0x00U, 0x00U, 0x00U, 0x00U};*/
+    uint8_t		  bDataWriteTest[16] = {0x74U, 0x65U, 0x63U, 0x6dU, \
+										0x69U, 0x63U, 0x20U, 0x78U, \
+										0x73U, 0x65U, 0x61U, 0x6cU, \
+										0x65U, 0x6eU, 0x63U, 0x65U};
+    int page;
+    int shutdown = 0;
 
     PH_UNUSED_VARIABLE(bGtLen);
 
-    while(1)
+    while(!shutdown)
         {
         DEBUG_PRINTF("Ready to detect.");
         DEBUG_FLUSH('\n');
@@ -455,6 +478,87 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                                     }
                                 }
                             }
+                        else if (0x00 == (pDataParams->sTypeATargetInfo.aTypeA_I3P3[loop].aSak[0] & 0xff))
+                            {
+                            DEBUG_PRINTF("\nProduct: MIFARE Ultralight C\n");
+
+                            /*DEBUG_PRINTF("\nThe original key is:                ");
+                            PRINT_BUFF(&Original_Key[0], 6);
+                            DEBUG_PRINTF("\nThe used key for authentication is: ");
+                            PRINT_BUFF(&Key[0], 6);*/
+
+                            /* load a Key to the Store */
+                            /* Note: If You use Key number 0x00, be aware that in SAM
+                              this Key is the 'Host authentication key' !!! */
+                            status = phKeyStore_FormatKeyEntry(&SwkeyStore, 1, PH_KEYSTORE_KEY_TYPE_MIFARE);
+
+                            /* First step for us is to authenticate with the Key at the Mifare
+                             * Classic in the field.
+                             * You need to authenticate at any block of a sector and you
+                             * may get access to all other blocks of the sector.
+                             * For example authenticating at block 5 you will get access to
+                             * the blocks 4, 5, 6, 7.
+                             */
+                            /* Mifare Ultralight C card, set Key Store */
+                            status = phKeyStore_SetKey(&SwkeyStore, 1, 0, PH_KEYSTORE_KEY_TYPE_MIFARE, &Key[0], 0);
+                            CHECK_STATUS(status);
+
+                            DEBUG_PRINTF("\nSet Key Store successful\n");
+
+                            /* Initialize the Mifare (R) Classic AL component - set NULL because
+                             * the keys are loaded in E2 by the function */
+                            /* phKeyStore_SetKey */
+                            status = phalMfc_Sw_Init(&alMfc, sizeof(phalMfc_Sw_DataParams_t), &palMifare, &SwkeyStore);
+                            CHECK_STATUS(status);
+
+                            /* Mifare Classic card, send authentication for sector 0 */
+                            bUidSize = pDataParams->sTypeATargetInfo.aTypeA_I3P3[0].bUidSize;
+                            memcpy( bUid, pDataParams->sTypeATargetInfo.aTypeA_I3P3[0].aUid, bUidSize );  /* PRQA S 3200 */
+
+                           /* status = phalMfc_Authenticate(&alMfc, 0, PHHAL_HW_MFC_KEYA, 1, 0, bUid, bUidSize);*/
+
+                            if ((status & PH_ERR_MASK) != PH_ERR_SUCCESS)
+                                {
+                                DEBUG_PRINTF("\n!!! Authentication was not successful.");
+                                DEBUG_PRINTF("\nPlease correct the used key");
+                                DEBUG_PRINTF("\nAbort of execution");
+                                }
+                            else
+                                {
+                                /*DEBUG_PRINTF("\nAuthentication successful\n");*/
+                                page = 8;
+
+                                /* Mifare Classic card, send authentication for sector 1 */
+                                /*status = phalMfc_Authenticate(&alMfc, 6, PHHAL_HW_MFC_KEYA, 1, 0, bUid, bUidSize);*/
+
+                                /* fill block with data */
+                                Fill_Block(bDataBuffer, 15);
+                                memset(bDataBuffer, '\0', DATA_BUFFER_LEN);
+
+								memcpy(bDataBuffer, bDataWriteTest, 16);
+
+                                /* Write data @ block %page */
+                                PH_CHECK_SUCCESS_FCT(status, phalMfc_Write_Block(&alMfc, page, bDataBuffer));
+                                DEBUG_PRINTF("\nWrite successful 16 bytes");
+
+                                /* Empty the bDataBuffer */
+                                memset(bDataBuffer, '\0', DATA_BUFFER_LEN);
+
+                                /* Read the just written data.
+                                 * In one reading action we always get the whole Block.
+                                 */
+                                DEBUG_PRINTF("\nReading the just written 16 bytes");
+                                PH_CHECK_SUCCESS_FCT(status, phalMfc_Read(&alMfc, page, bDataBuffer));
+
+                                DEBUG_PRINTF("\nThe content of Block %d is:\n", page);
+                                for (loop = 0; loop < 4; loop++)
+                                    {
+                                    PRINT_BUFF(&bDataBuffer[loop*4], 4);
+                                    DEBUG_PRINTF("\n");
+                                    }
+                                }
+                                shutdown = 1;
+                            }
                         else
                             {
                             if (PHAC_DISCLOOP_CHECK_ANDMASK(wTagsDetected, PHAC_DISCLOOP_TYPEA_DETECTED_TAG_TYPE1))
@@ -550,6 +654,9 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
         status = phhalHw_FieldReset(&halReader);
         CHECK_SUCCESS(status);
         }
+        
+        DEBUG_PRINTF("Exited Correctly\n");
+        return status;
     }
 
 
@@ -562,26 +669,13 @@ int main (void)
     phStatus_t  status;
 
     DEBUG_PRINTF("\nStart Example: Classic\n");
-#ifdef SPI_USED
-    DEBUG_PRINTF("\nSPI link selected");
-#endif /* SPI_USED */
-#ifdef I2C_USED
-    DEBUG_PRINTF("\nI2C link selected");
-#endif /* I2C_USED */
     /* Initialize GPIO (sets up clock) */
     GPIO_Init();
 
     /* Set the interface link for the
      * internal chip communication */
     Set_Interface_Link();
-
-#ifndef TUSA
-    /* Set LED port pin to output */
-    Set_Port();
-#endif
-    /* Ensure, that the LED is off */
-    LedOff();
-
+    
     /* Perform a hardware reset */
     Reset_reader_device();
 
@@ -596,17 +690,6 @@ int main (void)
     CHECK_SUCCESS(status);
 
     /* Initialize the Reader HAL (Hardware Abstraction Layer) component */
-#if defined NXPBUILD__PHHAL_HW_RC523
-    status = phhalHw_Rc523_Init(
-            &halReader,
-            sizeof(phhalHw_Rc523_DataParams_t),
-            &balReader,
-            0,
-            bHalBufferTx,
-            sizeof(bHalBufferTx),
-            bHalBufferRx,
-            sizeof(bHalBufferRx));
-#endif
 #if defined NXPBUILD__PHHAL_HW_RC663
     status = phhalHw_Rc663_Init(
             &halReader,
@@ -617,6 +700,7 @@ int main (void)
             sizeof(bHalBufferTx),
             bHalBufferRx,
             sizeof(bHalBufferRx));
+	CHECK_STATUS(status);
 #endif
 
     /* Set the parameter to use the UART interface */
@@ -626,12 +710,14 @@ int main (void)
     pHal = &halReader;
     /* Read the version of the reader IC */
 
-#if defined NXPBUILD__PHHAL_HW_RC523
-    phhalHw_ReadRegister(&halReader, PHHAL_HW_RC523_REG_VERSION, &bDataBuffer[0]);
-    DEBUG_PRINTF("\nReader chip PN512: 0x%02x\n", bDataBuffer[0]);
-#endif
 #if defined NXPBUILD__PHHAL_HW_RC663
-    phhalHw_ReadRegister(&halReader, PHHAL_HW_RC663_REG_VERSION, &bDataBuffer[0]);
+    status = phhalHw_ReadRegister(&halReader, PHHAL_HW_RC663_REG_VERSION, &bDataBuffer[0]);
+    if (0x00 == (bDataBuffer[0] & 0xff))
+    {
+		DEBUG_PRINTF("No Reader Detected\n");
+		status = PH_ADD_COMPCODE(PH_ERR_INTERFACE_ERROR, PH_COMP_HAL);
+	}
+    CHECK_STATUS(status);
     DEBUG_PRINTF("\nReader chip RC663: 0x%02x\n", bDataBuffer[0]);
 #endif
 

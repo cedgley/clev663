@@ -100,6 +100,13 @@ void Set_Interface_Link(void)
  * -------------------------------------------------------------------------------------------*/
 void Reset_reader_device(void)
 {
+	
+#if defined NXPBUILD__PHHAL_HW_RC663
+	int i;
+	/* delay of ~1,2 ms */
+	for (i = 0x2800; i > 0; i --);
+	
+#endif
 
 }
 /* **************************************

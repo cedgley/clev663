@@ -139,6 +139,17 @@ phStatus_t phalMfc_ReadValue(
                              );
 
 /**
+* \brief Perform Block Write with MIFARE(R) Write.
+* \return Status code
+* \retval #PH_ERR_SUCCESS Operation successful.
+*/
+phStatus_t phalMfc_Write_Block(
+                         void * pDataParams,    /**< [In] Pointer to this layer's parameter structure. */
+                         uint8_t bBlockNo,      /**< [In] block number to be written. */
+                         uint8_t * pBlockData   /**< [In] pBlockData[16] containing block to be written to the MIFARE(R) card */
+                         );
+                         
+/**
 * \brief Perform MIFARE(R) Write command with MIFARE Picc.
 * \return Status code
 * \retval #PH_ERR_SUCCESS Operation successful.
@@ -148,6 +159,7 @@ phStatus_t phalMfc_Write(
                          uint8_t bBlockNo,      /**< [In] block number to be written. */
                          uint8_t * pBlockData   /**< [In] pBlockData[16] containing block to be written to the MIFARE(R) card */
                          );
+                         
 /**
 * \brief Perform MIFARE(R) Write Value command with MIFARE Picc.
 * \return Status code

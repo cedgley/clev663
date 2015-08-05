@@ -119,19 +119,20 @@ phStatus_t phbalReg_Stub_Exchange(phbalReg_Stub_DataParams_t * pDataParams, uint
     uint8_t * pRxBuffer, uint16_t * pRxLength)
 {
   ssize_t n;
-  size_t i;
   struct pollfd fds[1];
 
   if(pDataParams->fd == -1) {
     return PH_ADD_COMPCODE(PH_ERR_NOT_INITIALISED, PH_COMP_BAL);
   }
-
+  //#define MYDEBUG
   if(wTxLength > 0) {
-     /*printf("Sending %d bytes: [", wTxLength);
-     for(i = 0; i < wTxLength; i++) {
+	 #ifdef MYDEBUG
+     printf("Sending %d byte: [", wTxLength);
+     for(int i = 0; i < wTxLength; i++) {
      printf("%02X", pTxBuffer[i]);
      }
-     printf("]\n");*/
+     printf("]\n");
+     #endif
     n = write(pDataParams->fd, pTxBuffer, wTxLength);
     if(n < 0) {
       printf("Error in write: %s\n", strerror(errno));
@@ -144,31 +145,36 @@ phStatus_t phbalReg_Stub_Exchange(phbalReg_Stub_DataParams_t * pDataParams, uint
     fds[0].events = POLLIN;
     fds[0].revents = 0;
 
-    n = poll(fds, 1, 700);
+    n = poll(fds, 1, 1000);
     if(n < 0) {
       printf("Error in poll: %s\n", strerror(errno));
       *pRxLength = 0;
       return PH_ADD_COMPCODE(PH_ERR_FAILED, PH_COMP_BAL);
     }
     if(n > 0) {
-      // printf("Expecting %d bytes\n", wRxBufSize);
+    #ifdef MYDEBUG
+      printf("Expecting %d byte\n", wRxBufSize);
+    #endif
       n = read(pDataParams->fd, pRxBuffer, wRxBufSize);
       if(n < 0) {
         printf("Error in read: %s\n", strerror(errno));
         *pRxLength = 0;
         return PH_ADD_COMPCODE(PH_ERR_FAILED, PH_COMP_BAL);
       }
-      /*if(n > 0) {
+      #ifdef MYDEBUG
+      if(n > 0) {
         printf("Got: [");
         for(i = 0; i < n; i++) {
           printf("%02X", pRxBuffer[i]);
         }
         printf("]\n");
-      }*/
+      }
+      #endif
       *pRxLength = n;
     }
     else {
       printf("Timeout Cmd:[%02X]\n", pTxBuffer[0]);
+      printf("Expecting %d byte\n", wRxBufSize);
       *pRxLength = 0;
     }
   }

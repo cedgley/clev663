@@ -23,6 +23,7 @@
  */
 
 #include <stdio.h>
+#include <time.h>
 #include <ph_Status.h>
 #include <ph_NxpBuild.h>
 
