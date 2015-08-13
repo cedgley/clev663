@@ -20,6 +20,7 @@
  *******************************************************************************/
 
 
+/*#include <openssl/des.h>*/
 #include <stdio.h>
 
 #define DEBUG
@@ -180,20 +181,40 @@ static /* const */ uint8_t Key[6] = {0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU};
 static /* const */ uint8_t Original_Key[6] = {0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU};
 
 /* Set the key for the Mifare (R) Ultralight C cards. */
-static /* const */ uint8_t KeyUC[16] =	{
+/*static*/ /* const */ /*uint8_t KeyUC[16] =	{
 										0x49U, 0x45U, 0x4DU, 0x4BU, \
 										0x41U, 0x45U, 0x52U, 0x42U, \
 										0x21U, 0x4EU, 0x41U, 0x43U, \
 										0x55U, 0x4FU, 0x59U, 0x46U
+										};*/
+										
+static /* const */ uint8_t KeyULC1[8] =	{
+										0x49U, 0x45U, 0x4DU, 0x4BU, \
+										0x41U, 0x45U, 0x52U, 0x42U
 										};
+										
+static /* const */ uint8_t KeyULC2[8] =	{
+										0x21U, 0x4EU, 0x41U, 0x43U, \
+										0x55U, 0x4FU, 0x59U, 0x46U
+										};
+										
+static /* const */ uint8_t KeyULC3[24] = {
+										 0x49U, 0x45U, 0x4DU, 0x4BU, \
+										 0x41U, 0x45U, 0x52U, 0x42U, \
+										 0x21U, 0x4EU, 0x41U, 0x43U, \
+										 0x55U, 0x4FU, 0x59U, 0x46U, \
+										 0x49U, 0x45U, 0x4DU, 0x4BU, \
+										 0x41U, 0x45U, 0x52U, 0x42U
+										 };
+										
 
 // Don't change the following line
-static /* const */ uint8_t Original_KeyUC[16] = {
+/*static*/ /* const */ /*uint8_t Original_KeyUC[16] = {
 												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
 												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
 												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
 												0xFFU, 0xFFU, 0xFFU, 0xFFU
-												};
+												};*/
 
 /***********************************************************************************************
  * \brief     Prints the UID.
@@ -228,6 +249,32 @@ static void Fill_Block(uint8_t *pBlock, uint8_t MaxNr)
         *pBlock++ = i + 0x20;
         }
     }
+    
+/***********************************************************************************************
+ * \brief      This function encrypts an 8B number with DES.
+ *
+ *
+ **********************************************************************************************/
+uint8_t * Encrypt(uint8_t *Key, uint8_t *Msg, int size)
+{
+ 
+        static uint8_t*  Res;
+        int              n = 0;
+        DES_cblock		 Key2;
+        DES_key_schedule schedule;
+ 
+        Res = (uint8_t *)malloc(size);
+ 
+        /* Prepare the key for use with DES_cfb64_encrypt */
+        memcpy(Key2, Key, 8);
+        DES_set_odd_parity(&Key2);
+        DES_set_key_checked(&Key2, &schedule);
+ 
+        /* Encryption occurs here */
+        DES_cfb64_encrypt((uint8_t *) Msg, (uint8_t *) Res, size, &schedule, &Key2, &n, DES_ENCRYPT );
+ 
+        return (Res);
+}
 
 /***********************************************************************************************
  * \brief      Initializes the discover loop component
@@ -464,7 +511,7 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                             bUidSize = pDataParams->sTypeATargetInfo.aTypeA_I3P3[0].bUidSize;
                             memcpy( bUid, pDataParams->sTypeATargetInfo.aTypeA_I3P3[0].aUid, bUidSize );  /* PRQA S 3200 */
 
-                            status = phalMfc_Authenticate(&alMfc, 0, PHHAL_HW_MFC_KEYA, 1, 0, bUid, bUidSize);
+                            status = phalMfc_Authenticate(&alMfc, 4, PHHAL_HW_MFC_KEYA, 1, 0, bUid, bUidSize);
 
                             if ((status & PH_ERR_MASK) != PH_ERR_SUCCESS)
                                 {
@@ -515,7 +562,8 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                             /* load a Key to the Store */
                             /* Note: If You use Key number 0x00, be aware that in SAM
                               this Key is the 'Host authentication key' !!! */
-                            status = phKeyStore_FormatKeyEntry(&SwkeyStore, 1, PH_KEYSTORE_KEY_TYPE_2K3DES);
+                            /*status = phKeyStore_FormatKeyEntry(&SwkeyStore, 1, PH_KEYSTORE_KEY_TYPE_2K3DES);
+                            CHECK_STATUS(status);*/
 
                             /* First step for us is to authenticate with the Key at the Mifare
                              * Classic in the field.
@@ -525,31 +573,28 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                              * the blocks 4, 5, 6, 7.
                              */
                             /* Mifare Ultralight C card, set Key Store */
-                            status = phKeyStore_SetKey(&SwkeyStore, 1, 0, PH_KEYSTORE_KEY_TYPE_2K3DES, &KeyUC[0], 0);
-                            CHECK_STATUS(status);
+                            /*status = phKeyStore_SetKey(&SwkeyStore, 1, 0, PH_KEYSTORE_KEY_TYPE_2K3DES, &KeyUC[0], 0);
+                            CHECK_STATUS(status);*/
 
-                            DEBUG_PRINTF("\nSet Key Store successful\n");
+                           /* DEBUG_PRINTF("\nSet Key Store successful\n");*/
 
                             /* Initialize the Mifare (R) Classic AL component - set NULL because
                              * the keys are loaded in E2 by the function */
                             /* phKeyStore_SetKey */
-                            status = phalMfc_Sw_Init(&alMfc, sizeof(phalMfc_Sw_DataParams_t), &palMifare, &SwkeyStore);
-                            CHECK_STATUS(status);
+                            /*status = phalMfc_Sw_Init(&alMfc, sizeof(phalMfc_Sw_DataParams_t), &palMifare, &SwkeyStore);
+                            CHECK_STATUS(status);*/
                             //DEBUG_PRINTF("\nMfc_Sw_Init successful\n");
+                            
+                            status = phalMfulc_Sw_Init(&alMfc, sizeof(phalMfc_Sw_DataParams_t), &palMifare);
+                            CHECK_STATUS(status);
 
                             /* Mifare Classic card, send authentication for sector 0 */
                             bUidSize = pDataParams->sTypeATargetInfo.aTypeA_I3P3[0].bUidSize;
                             memcpy( bUid, pDataParams->sTypeATargetInfo.aTypeA_I3P3[0].aUid, bUidSize );  /* PRQA S 3200 */
-
-            /**/            status = phalMfc_Authenticate(&alMfc, 8, PHHAL_HW_MFULC_KEY, 1, 0, bUid, bUidSize);
-														/*void * pDataParams,
-														uint8_t bBlockNo,
-														uint8_t bKeyType,
-														uint16_t wKeyNumber,
-														uint16_t wKeyVersion,
-														uint8_t * pUid,
-														uint8_t bUidLength*/
-                            CHECK_STATUS(status);
+                            
+/**/						/*DEBUG_PRINTF("\nAuthenticating\n");
+							status = phalMfulc_Auth(&alMfc, bDataBuffer);
+                            CHECK_STATUS(status);*/
 
                             if ((status & PH_ERR_MASK) != PH_ERR_SUCCESS)
                                 {
@@ -564,6 +609,7 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
 
                                 /* Mifare Classic card, send authentication for sector 1 */
                                 //status = phalMfc_Authenticate(&alMfc, 6, PHHAL_HW_MFC_KEYA, 1, 0, bUid, bUidSize);
+                                
 
                                 /* fill block with data */
                                 Fill_Block(bDataBuffer, 15);
@@ -586,10 +632,14 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
 
                                 DEBUG_PRINTF("The content of Block %d is:\n", page);
                                 for (loop = 0; loop < 4; loop++)
-                                    {
+								{
                                     PRINT_BUFF(&bDataBuffer[loop*4], 4);
                                     DEBUG_PRINTF("\n");
-                                    }
+								}
+/**/							DEBUG_PRINTF("\nAuthenticating\n");
+								status = phalMfulc_Auth(&alMfc, bDataBuffer);
+								CHECK_STATUS(status);
+
                                 }
                                 shutdown = 1;
                             }
@@ -638,42 +688,6 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                     DEBUG_PRINTF ("\nUID: "); // PUPI - Pseudo Unique PICC Identifier
                     PRINT_BUFF(pDataParams->sTypeBTargetInfo.aI3P3B[loop].aPupi, 4);
                     DEBUG_PRINTF ("\n");
-                    }
-
-                status = phOsal_Timer_Wait(&osal, 1, 200); // only for LED blink visibility of release mode
-                LedOff();
-                }
-
-            /***************************
-             **   Type F
-             **************************/
-
-            if (PHAC_DISCLOOP_CHECK_ANDMASK(wTagsDetected, PHAC_DISCLOOP_TYPEF_DETECTED))
-                {
-                LedOn();
-
-                /* TODO: Incase of P2P F, we should not print the UID*/
-                if ( !(wTagsDetected & PHAC_DISCLOOP_TYPEF_DETECTED_TAG_P2P))
-                    {
-                    DEBUG_PRINTF("\nDetected Type F tag(s) ");
-                    /* Get the number of Type F tags detected */
-                    status = phacDiscLoop_GetConfig(pDataParams, PHAC_DISCLOOP_CONFIG_TYPEF_NR_TAGS_FOUND, &wNumberOfTags);
-
-                    /* Loop through all the type F tags and print the IDm */
-                    for (loop = 0; loop < wNumberOfTags; loop++)
-                        {
-                        DEBUG_PRINTF ("\nCard %d:",loop + 1);
-                        DEBUG_PRINTF ("\nUID: "); // IDm - manufacturer ID
-                        PRINT_BUFF(pDataParams->sTypeFTargetInfo.aTypeF[loop].aIDmPMm,
-                                PHAC_DISCLOOP_FELICA_IDM_LENGTH);
-                        DEBUG_PRINTF ("\n");
-                        }
-                    }
-
-                if (wTagsDetected & PHAC_DISCLOOP_TYPEF_DETECTED_TAG_P2P)
-                    {
-                    /* If Type F tag with P2P capability was discovered, do and P2P exchange */
-                    DEBUG_PRINTF("Type F P2P device has been detected \n");
                     }
 
                 status = phOsal_Timer_Wait(&osal, 1, 200); // only for LED blink visibility of release mode
@@ -838,6 +852,33 @@ int main (void)
 
     status = phbalReg_ClosePort(&balReader);
     CHECK_SUCCESS(status);
+    
+	/**uint8_t ex1[8] = {0x51, 0xE7, 0x64, 0x60, 0x26, 0x78, 0xDF, 0x2B};
+	unsigned char schedule[3][16][6];
+	uint8_t res1[8];
+	uint8_t res2[8];
+	uint8_t res3[8];
+	
+    int i;
+    printf("Original:");
+	for (i = 0; i < 8; i++) printf(" %02X", ex1[i]);
+	puts("");
+	
+	key_schedule((unsigned char *) KeyULC1, schedule, 1);
+	des_crypt((unsigned char *) ex1, (unsigned char *) res1, schedule);
+	
+	key_schedule((unsigned char *) KeyULC2, schedule, 0);
+	des_crypt((unsigned char *) res1, (unsigned char *) res2, schedule);
+	
+	key_schedule((unsigned char *) KeyULC1, schedule, 1);
+	des_crypt((unsigned char *) res2, (unsigned char *) res3, schedule);
+	
+	three_des_key_schedule((unsigned char *) KeyULC3, schedule, 1);
+	three_des_crypt((unsigned char *) ex1, (unsigned char *) res1, schedule);
+	
+	printf("Encrypted:");
+	for (i = 0; i < 8; i++) printf(" %02X", res1[i]);
+	puts("");*/
 
     return 0;
 }

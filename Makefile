@@ -58,7 +58,7 @@ INCLUDE_DIR:=-I$(CURDIR)/include \
 
 # Library source top level directory
 LIB_DIR:=lib
-LIBS:=
+LIBS:= -lssl -lcrypto
 
 OBJS-Y:=main.o phhwConfig.o phhalHw.o phTools.o phOsal.o phbalReg.o \
 phKeyStore.o phKeyStore_Rc663.o phKeyStore_Sw.o \
@@ -71,12 +71,13 @@ phpalI14443p3a.o phpalI14443p3a_Sw.o phpalI14443p3b.o phpalI14443p3b_Sw.o \
 phpalI14443p4.o phpalI14443p4_Sw.o phpalI14443p4a.o phpalI14443p4a_Sw.o \
 phpalI18092mT.o phpalI18092mT_Sw.o phpalI18092mT_Sw_Int.o \
 phpalI18092mPI.o phpalI18092mPI_Sw.o phpalI18092mPI_Sw_Int.o \
-phalT1T.o phalT1T_Sw.o phbalReg_Stub.o phOsal_Stub.o
+phalT1T.o phalT1T_Sw.o phbalReg_Stub.o phOsal_Stub.o \
+des.o
 
 OBJS:= ${OBJS-Y:%.o=${OBJ_DIR}/%.o}
 
 #export CFLAGS:=-Wall ${EXTRA_FLAGS} -O0 -g
-export CFLAGS:=${EXTRA_FLAGS} -O0
+export CFLAGS:=${EXTRA_FLAGS} -O0 -Wall
 
 vpath %.c $(SRC_DIR)
 

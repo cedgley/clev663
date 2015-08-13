@@ -64,6 +64,12 @@ phStatus_t phalMfc_Sw_Init(
                            void * pKeyStoreDataParams               /**< [In] Pointer to the parameter structure of the KeyStore component. */
                            );
 
+phStatus_t phalMfulc_Sw_Init(
+                           phalMfc_Sw_DataParams_t * pDataParams,
+                           uint16_t wSizeOfDataParams,
+                           void * pPalMifareDataParams
+                           );
+
 /** @} */
 #endif /* NXPBUILD__PHAL_MFC_SW */
 
@@ -88,6 +94,13 @@ phStatus_t phalMfc_Sw_Init(
 /*@{*/
 #define PHAL_MFC_DATA_BLOCK_LENGTH      16U     /**< Length of a MIFARE(R) Classic data block. */
 #define PHAL_MFC_VALUE_BLOCK_LENGTH      4U     /**< Length of a MIFARE(R) Classic value block. */
+/*@}*/
+
+/**
+* \name Mifare Ultralight Auth definitions
+*/
+/*@{*/
+#define PHAL_MFULC_CHALL1_LENGTH      9U     /**< Length of a MIFARE(R) Ultralight first challenge. */
 /*@}*/
 
 /**
@@ -125,6 +138,16 @@ phStatus_t phalMfc_Read(
                         uint8_t bBlockNo,       /**< [In] block number to be read. */
                         uint8_t * pBlockData    /**< [Out] pBlockData[16] containing block read from the MIFARE(R) card */
                         );
+
+/**
+* \brief Perform MIFARE(R) Auth command with MIFARE Picc.
+* \return Status code
+* \retval #PH_ERR_SUCCESS Operation successful.
+*/
+phStatus_t phalMfulc_Auth(
+						  void * pDataParams,
+						  uint8_t * pBlockData
+						  );
 
 /**
 * \brief Perform MIFARE(R) Read Value command with MIFARE Picc.

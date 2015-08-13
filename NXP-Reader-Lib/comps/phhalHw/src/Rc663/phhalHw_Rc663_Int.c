@@ -1863,20 +1863,19 @@ phStatus_t phhalHw_Rc663_MfcAuthenticate_Int(
 	}
     else
     {
-		puts("fail");
         return PH_ADD_COMPCODE(PH_ERR_INVALID_PARAMETER, PH_COMP_HAL);
     }
 
     /* set block number */
-    aTxBuffer[1] = bBlockNo;
+    if (bKeyType != PHHAL_HW_MFULC_KEY) aTxBuffer[1] = bBlockNo;
 
     /* set serial number */
-    memcpy(&aTxBuffer[2], pUid, 4);  /* PRQA S 3200 */
+    if (bKeyType != PHHAL_HW_MFULC_KEY) memcpy(&aTxBuffer[2], pUid, 4);  /* PRQA S 3200 */
     /*printf("pUid: %02x %02x %02x %02x %02x %02x\n",
 			pUid[0], pUid[1], pUid[2],
-			pUid[3], pUid[4], pUid[5]);
+			pUid[3], pUid[4], pUid[5]);*/
 
-    printf("aTxBuffer: %02x %02x %02x %02x %02x %02x\n",
+    /*printf("aTxBuffer: %02x %02x %02x %02x %02x %02x\n",
 			aTxBuffer[0], aTxBuffer[1], aTxBuffer[2],
 			aTxBuffer[3], aTxBuffer[4], aTxBuffer[5]);*/
 
@@ -1888,6 +1887,23 @@ phStatus_t phhalHw_Rc663_MfcAuthenticate_Int(
     printf("1Error Register %02x\n",bRegister);
 
     /* Execute Authenticate command */
+        
+    if (bKeyType == PHHAL_HW_MFULC_KEY)
+    {
+    PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_Rc663_Command_Int(
+        pDataParams,
+        PHHAL_HW_RC663_CMD_MFAUTHENT,
+        PH_EXCHANGE_DEFAULT,
+        bIrq0WaitFor,
+        bIrq1WaitFor,
+        aTxBuffer,
+        1,
+        0,
+        NULL,
+        NULL));
+    }
+    else
+    {
     PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_Rc663_Command_Int(
         pDataParams,
         PHHAL_HW_RC663_CMD_MFAUTHENT,
@@ -1899,6 +1915,7 @@ phStatus_t phhalHw_Rc663_MfcAuthenticate_Int(
         0,
         NULL,
         NULL));
+	}
 
     /* Check auth success */
     PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_ReadRegister(pDataParams, PHHAL_HW_RC663_REG_STATUS, &bRegister));
@@ -1952,7 +1969,7 @@ phStatus_t phhalHw_Rc663_Command_Int(
         }
         
         PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_Rc663_Cmd_AckReq(pDataParams, pRxBuffer, pRxLength));
-        
+		
         status = PH_ERR_SUCCESS;
         break;
     default:

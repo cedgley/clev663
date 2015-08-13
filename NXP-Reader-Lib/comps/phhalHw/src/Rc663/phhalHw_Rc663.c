@@ -241,6 +241,7 @@ phStatus_t phhalHw_Rc663_Exchange(
     uint8_t *   PH_MEMLOC_REM pTmpBuffer;
     uint16_t    PH_MEMLOC_REM wTmpBufferLen;
     uint16_t    PH_MEMLOC_REM wTmpBufferSize;
+    int i;
 
     /* Check options */
     if (wOption & (uint16_t)~(uint16_t)(PH_EXCHANGE_BUFFERED_BIT | PH_EXCHANGE_LEAVE_BUFFER_BIT))
@@ -259,6 +260,10 @@ phStatus_t phhalHw_Rc663_Exchange(
     {
         *pRxLength = 0;
     }
+/**/	printf("%dpTxBuffer", wTxLength);
+        for(i = 0; i < wTxLength; i++) printf(" %02x", pTxBuffer[i]);
+        printf("\n");
+
 
     /* Fill the global TxBuffer */
     /* Note: We always need to buffer for SPI, else the input buffer would get overwritten! */
@@ -268,7 +273,7 @@ phStatus_t phhalHw_Rc663_Exchange(
     {
         /* retrieve transmit buffer */
         PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_Rc663_GetTxBuffer(pDataParams, PH_ON, &pTmpBuffer, &wTmpBufferLen, &wTmpBufferSize));
-
+        
         if (wTxLength != 0)
         {
             /* TxBuffer overflow check */
@@ -401,7 +406,7 @@ phStatus_t phhalHw_Rc663_Exchange(
 #ifdef PHHAL_HW_RC663_FEATURE_FIFO_UNDERFLOW_CHECK
         /* read interrupt status */
         PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_ReadRegister(pDataParams, PHHAL_HW_RC663_REG_IRQ0, &bIrq0Reg));
-
+        
         /* If we got data to transmit but the Tx-command aborted, we were too slow! */
         if ((bIrq0Reg & PHHAL_HW_RC663_BIT_IDLEIRQ) || (bIrq0Reg & PHHAL_HW_RC663_BIT_TXIRQ))
         {
@@ -660,6 +665,7 @@ phStatus_t phhalHw_Rc663_Exchange(
     {
         /* Retrieve valid bits of last byte */
         PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_ReadRegister(pDataParams, PHHAL_HW_RC663_REG_RXBITCTRL, &bRegister));
+        printf("bRegister %02x\n", (uint16_t)bRegister);
 
         /* Mask out valid bits of last byte */
         bRegister &= PHHAL_HW_RC663_MASK_RXLASTBITS;
@@ -692,6 +698,10 @@ phStatus_t phhalHw_Rc663_Exchange(
     if (ppRxBuffer != NULL)
     {
         *ppRxBuffer = pDataParams->pRxBuffer;
+        
+/**/	printf("%dppRxBuffer", pDataParams->wRxBufLen);
+        for(i = 0; i < pDataParams->wRxBufLen; i++) printf(" %02x", ppRxBuffer[0][i]);
+        printf("\n");
     }
 
     /* Return RxBuffer length */

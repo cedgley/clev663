@@ -48,6 +48,8 @@
 #define PHAL_MFC_CMD_AUTHB      0x61    /**< MIFARE Classic Authenticate B command byte */
 #define PHAL_MFC_CMD_PERSOUID   0x40    /**< MIFARE Classic Personalize UID command */
 
+#define PHAL_MFULC_CMD_AUTH     0x1A    /**< MIFARE Ultralight Authenticate command byte */
+
 /**
 * \brief Perform MIFARE(R) Transfer command with MIFARE Picc.
 * \return Status code

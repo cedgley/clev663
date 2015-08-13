@@ -32,6 +32,8 @@
 * @{
 */
 
+#define PHPAL_MIFARE_RESP_AUTH   0xAF    /**< MIFARE ULC AUTH response code */
+
 #define PHPAL_MIFARE_RESP_ACK    0x0A    /**< MIFARE ACK response code */
 #define PHPAL_MIFARE_RESP_NAK0   0x00    /**< MIFARE NAK0 response code */
 #define PHPAL_MIFARE_RESP_NAK1   0x01    /**< MIFARE NAK1 response code */

@@ -24,6 +24,7 @@
 */
 
 #include <stdio.h>
+#include <des.h>
 #include <ph_Status.h>
 #include <phhalHw.h>
 #include <phalMfc.h>
@@ -35,7 +36,15 @@
 
 #include "phalMfc_Sw.h"
 #include "../phalMfc_Int.h"
-
+										
+static /* const */ uint8_t KeyULC3[24] = {
+										 0x49U, 0x45U, 0x4DU, 0x4BU, \
+										 0x41U, 0x45U, 0x52U, 0x42U, \
+										 0x21U, 0x4EU, 0x41U, 0x43U, \
+										 0x55U, 0x4FU, 0x59U, 0x46U, \
+										 0x49U, 0x45U, 0x4DU, 0x4BU, \
+										 0x41U, 0x45U, 0x52U, 0x42U
+										 };
 phStatus_t phalMfc_Sw_Init(
                            phalMfc_Sw_DataParams_t * pDataParams,
                            uint16_t wSizeOfDataParams, 
@@ -58,6 +67,26 @@ phStatus_t phalMfc_Sw_Init(
     return PH_ADD_COMPCODE(PH_ERR_SUCCESS, PH_COMP_AL_MFC);
 }
 
+phStatus_t phalMfulc_Sw_Init(
+                           phalMfc_Sw_DataParams_t * pDataParams,
+                           uint16_t wSizeOfDataParams, 
+                           void * pPalMifareDataParams
+                           )
+{
+    if (sizeof(phalMfc_Sw_DataParams_t) != wSizeOfDataParams)
+    {
+        return PH_ADD_COMPCODE(PH_ERR_INVALID_DATA_PARAMS, PH_COMP_AL_MFC);
+    }
+	PH_ASSERT_NULL (pDataParams);
+	PH_ASSERT_NULL (pPalMifareDataParams);
+
+    /* init private data */
+    pDataParams->wId                    = PH_COMP_AL_MFC | PHAL_MFC_SW_ID;
+    pDataParams->pPalMifareDataParams   = pPalMifareDataParams;
+
+    return PH_ADD_COMPCODE(PH_ERR_SUCCESS, PH_COMP_AL_MFC);
+}
+
 phStatus_t phalMfc_Sw_Authenticate(
                                    phalMfc_Sw_DataParams_t * pDataParams,
                                    uint8_t bBlockNo,
@@ -73,18 +102,21 @@ phStatus_t phalMfc_Sw_Authenticate(
     uint8_t     PH_MEMLOC_REM aKeyUC[PHHAL_HW_MFULC_KEY_LENGTH];
     uint8_t *   PH_MEMLOC_REM pKey;
     uint16_t    PH_MEMLOC_REM bKeystoreKeyType;
+    
+    int Uidstart = bUidLength - 4;
 
     /* check if software key store is available. */
     if (pDataParams->pKeyStoreDataParams == NULL)
     {
         /* There is no software keystore available. */
+        if ((bKeyType & 0x7F) == PHHAL_HW_MFULC_KEY) Uidstart = 0;
         return phpalMifare_MfcAuthenticateKeyNo(
             pDataParams->pPalMifareDataParams,
             bBlockNo,
             bKeyType,
             wKeyNo,
             wKeyVersion,
-            &pUid[bUidLength - 4]);
+            &pUid[Uidstart]);
     }
     else
     {
@@ -104,6 +136,7 @@ phStatus_t phalMfc_Sw_Authenticate(
             sizeof(aKeyUC),
             aKeyUC,
             &bKeystoreKeyType));
+            
         /* check key type */
         if ((bKeystoreKeyType != PH_KEYSTORE_KEY_TYPE_MIFARE) && (bKeystoreKeyType != PH_KEYSTORE_KEY_TYPE_2K3DES))
         {
@@ -125,12 +158,13 @@ phStatus_t phalMfc_Sw_Authenticate(
         {
             /* Use KeyUC */
             pKey = aKeyUC;
+			Uidstart = 0;
         }
         else
         {	
             return PH_ADD_COMPCODE(PH_ERR_INVALID_PARAMETER, PH_COMP_HAL);
         }
-
+		
         /*return phpalMifare_MfcAuthenticate(
             pDataParams->pPalMifareDataParams,
             bBlockNo,
@@ -142,7 +176,7 @@ phStatus_t phalMfc_Sw_Authenticate(
             bBlockNo,
             bKeyType,
             pKey,
-            &pUid[0]); /**Changed from last 4 bytes to first 4 bytes*/
+            &pUid[Uidstart]); /**Changed from last 4 bytes to first 4 bytes only when MFUC*/
     }
 }
 
@@ -171,6 +205,7 @@ phStatus_t phalMfc_Sw_Read(
         &wRxLength
         ));
 
+    printf("wRxLength %d\n", wRxLength);
     /* check received length */
     if (wRxLength != PHAL_MFC_DATA_BLOCK_LENGTH)
     {
@@ -181,6 +216,64 @@ phStatus_t phalMfc_Sw_Read(
     memcpy(pBlockData, pRxBuffer, wRxLength);  /* PRQA S 3200 */
 
     return PH_ADD_COMPCODE(PH_ERR_SUCCESS, PH_COMP_AL_MFC); 
+}
+
+phStatus_t phalMfulc_Sw_Auth(phalMfc_Sw_DataParams_t * pDataParams, uint8_t * pBlockData)
+{
+    phStatus_t  PH_MEMLOC_REM statusTmp;
+    uint8_t     PH_MEMLOC_REM aCommand[2];
+    uint8_t *   PH_MEMLOC_REM pRxBuffer;
+    uint16_t    PH_MEMLOC_REM wRxLength;
+    uint16_t	res1[8];
+    unsigned char schedule[3][16][6];
+    int i;
+
+    /* build command frame */
+    aCommand[0] = PHAL_MFULC_CMD_AUTH;
+    aCommand[1] = 0;
+
+    /* transmit the command frame */
+    PH_CHECK_SUCCESS_FCT(statusTmp, phpalMifare_ExchangeL3(
+        pDataParams->pPalMifareDataParams,
+        PH_EXCHANGE_DEFAULT,
+        /*PH_EXCHANGE_BUFFER_FIRST,*/
+        aCommand,
+        2,
+        &pRxBuffer,
+        &wRxLength
+        ));
+	puts("success!!!!!!!!!");
+
+    printf("%dpRxBuffer", wRxLength);
+	for(i = 0; i < wRxLength; i++) printf(" %02x", pRxBuffer[i]);
+	printf("\n");
+
+    /* check received length */
+    if (wRxLength != PHAL_MFULC_CHALL1_LENGTH)
+    {
+        return PH_ADD_COMPCODE(PH_ERR_PROTOCOL_ERROR, PH_COMP_AL_MFC);
+    }
+
+    /* copy received data block */
+	memcpy(pBlockData, pRxBuffer, wRxLength);
+	
+	
+	
+	
+	
+	three_des_key_schedule((unsigned char *) KeyULC3, schedule, 1);
+	three_des_crypt((unsigned char *) &pRxBuffer[1], (unsigned char *) res1, schedule);
+	
+	printf("Decrypted:");
+	for (i = 0; i < 8; i++) printf(" %02X", res1[i]);
+	puts("");
+	
+	
+	
+	
+	
+
+    return PH_ADD_COMPCODE(PH_ERR_SUCCESS, PH_COMP_AL_MFC);
 }
 
 phStatus_t phalMfc_Sw_ReadValue(

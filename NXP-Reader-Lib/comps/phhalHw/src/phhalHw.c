@@ -82,14 +82,9 @@ phStatus_t phhalHw_Exchange(
 #ifdef NXPBUILD__PHHAL_HW_RC663
     case PHHAL_HW_RC663_ID:
         status = phhalHw_Rc663_Exchange((phhalHw_Rc663_DataParams_t *)pDataParams, wOption, pTxBuffer, wTxLength, ppRxBuffer, pRxLength);
+        printf("phhalHw_Rc663_Exchange %02x\n", status);
         break;
 #endif /* NXPBUILD__PHHAL_HW_RC663 */
-
-#ifdef NXPBUILD__PHHAL_HW_RC523
-    case PHHAL_HW_RC523_ID:
-        status = phhalHw_Rc523_Exchange((phhalHw_Rc523_DataParams_t *)pDataParams, wOption, pTxBuffer, wTxLength, ppRxBuffer, pRxLength);
-        break;
-#endif /* NXPBUILD__PHHAL_HW_RC523 */
 
 #ifdef NXPBUILD__PHHAL_HW_CALLBACK
     case PHHAL_HW_CALLBACK_ID:
@@ -602,17 +597,6 @@ phStatus_t phhalHw_MfcAuthenticate(
             pUid);
         break;
 #endif /* NXPBUILD__PHHAL_HW_RC663 */
-
-#ifdef NXPBUILD__PHHAL_HW_RC523
-    case PHHAL_HW_RC523_ID:
-        status = phhalHw_Rc523_MfcAuthenticate(
-            (phhalHw_Rc523_DataParams_t *)pDataParams,
-            bBlockNo,
-            bKeyType,
-            pKey,
-            pUid);
-        break;
-#endif /* NXPBUILD__PHHAL_HW_RC523 */
 
 #ifdef NXPBUILD__PHHAL_HW_CALLBACK
     case PHHAL_HW_CALLBACK_ID:

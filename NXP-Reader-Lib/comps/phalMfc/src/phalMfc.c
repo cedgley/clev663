@@ -154,6 +154,56 @@ phStatus_t phalMfc_Read(
     return status;
 }
 
+phStatus_t phalMfulc_Auth(
+						  void * pDataParams,
+                          uint8_t * pBlockData
+                          )
+{
+    phStatus_t PH_MEMLOC_REM status;
+
+    PH_LOG_HELPER_ALLOCATE_TEXT(bFunctionName, "phalMfulc_Auth");
+    PH_LOG_HELPER_ALLOCATE_PARAMNAME(pDataParams);
+    PH_LOG_HELPER_ALLOCATE_PARAMNAME(status);
+    PH_LOG_HELPER_ADDSTRING(PH_LOG_LOGTYPE_INFO, bFunctionName);
+    PH_LOG_HELPER_EXECUTE(PH_LOG_OPTION_CATEGORY_ENTER);
+	PH_ASSERT_NULL (pDataParams);
+
+    if (PH_GET_COMPCODE(pDataParams) != PH_COMP_AL_MFC)
+    {
+		status = PH_ADD_COMPCODE(PH_ERR_INVALID_DATA_PARAMS, PH_COMP_AL_MFC);
+
+        PH_LOG_HELPER_ADDSTRING(PH_LOG_LOGTYPE_INFO, bFunctionName);
+        PH_LOG_HELPER_ADDPARAM_UINT16(PH_LOG_LOGTYPE_INFO, status_log, &status);
+        PH_LOG_HELPER_EXECUTE(PH_LOG_OPTION_CATEGORY_LEAVE);
+
+        return status;
+    }
+
+    /* perform operation on active layer */
+    switch (PH_GET_COMPID(pDataParams))
+    {
+    case PHAL_MFC_SW_ID:
+        status = phalMfulc_Sw_Auth((phalMfc_Sw_DataParams_t *)pDataParams, pBlockData);
+        break;
+
+    default:
+        status = PH_ADD_COMPCODE(PH_ERR_INVALID_DATA_PARAMS, PH_COMP_AL_MFC);
+        break;
+    }
+
+    PH_LOG_HELPER_ADDSTRING(PH_LOG_LOGTYPE_INFO, bFunctionName);
+#ifdef NXPBUILD__PH_LOG
+    if ((status & PH_ERR_MASK) == PH_ERR_SUCCESS)
+    {
+        PH_LOG_HELPER_ADDPARAM_BUFFER(PH_LOG_LOGTYPE_DEBUG, pBlockData_log, pBlockData, 16);
+    }
+#endif
+    PH_LOG_HELPER_ADDPARAM_UINT16(PH_LOG_LOGTYPE_INFO, status_log, &status);
+    PH_LOG_HELPER_EXECUTE(PH_LOG_OPTION_CATEGORY_LEAVE);
+
+    return status;
+}
+
 phStatus_t phalMfc_ReadValue(
                              void * pDataParams,
                              uint8_t bBlockNo,

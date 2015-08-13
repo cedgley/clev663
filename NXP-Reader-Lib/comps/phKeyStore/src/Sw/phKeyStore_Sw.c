@@ -59,8 +59,8 @@ phStatus_t phKeyStore_Sw_Init(
 	PH_ASSERT_NULL (pKUCEntries);
 
     /* Init private data */
-    /*pDataParams->wId = PH_COMP_KEYSTORE | PH_KEYSTORE_SW_ID;*/ /**Changed it to the RC663*/
-    pDataParams->wId = PH_COMP_KEYSTORE | PH_KEYSTORE_RC663_ID;
+    pDataParams->wId = PH_COMP_KEYSTORE | PH_KEYSTORE_SW_ID; /**Had changed it to the RC663*/
+    /*pDataParams->wId = PH_COMP_KEYSTORE | PH_KEYSTORE_RC663_ID;*/
     pDataParams->pKeyEntries = pKeyEntries;
     pDataParams->pKeyVersionPairs = pKeyVersionPairs;
     pDataParams->wNoOfKeyEntries = wNoOfKeyEntries;

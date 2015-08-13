@@ -23,6 +23,7 @@
 *
 */
 
+#include <stdio.h> /*Remove later*/
 #include <ph_Status.h>
 #include <phhalHw.h>
 #include <phpalMifare.h>
@@ -95,7 +96,6 @@ phStatus_t phpalMifare_Sw_ExchangeL3(
         /* Disable RxCrc */
         PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_SetConfig(pDataParams->pHalDataParams, PHHAL_HW_CONFIG_RXCRC, PH_OFF));
     }
-
     /* Perform Exchange */
     status = phhalHw_Exchange(
         pDataParams->pHalDataParams,
@@ -114,6 +114,7 @@ phStatus_t phpalMifare_Sw_ExchangeL3(
     /* ACK/NAK Handling */
     if ((status & PH_ERR_MASK) == PH_ERR_SUCCESS_INCOMPLETE_BYTE)
     {
+		puts("ACKNAK");
         /* Check for protocol error */
         if (*pRxLength != 1)
         {
@@ -128,14 +129,17 @@ phStatus_t phpalMifare_Sw_ExchangeL3(
         {
             return PH_ADD_COMPCODE(PH_ERR_PROTOCOL_ERROR, PH_COMP_PAL_MIFARE);
         }
-
         /* ACK/NAK Mapping */
+		printf("(*ppRxBuffer)[0] %02x\n", (*ppRxBuffer)[0]);
         switch ((*ppRxBuffer)[0])
         {
             /* ACK -> everything OK */
         case PHPAL_MIFARE_RESP_ACK:
             status = PH_ERR_SUCCESS;
             break;
+		case PHPAL_MIFARE_RESP_AUTH:
+            status = PH_ERR_SUCCESS;
+            break;			
             /* Mapping of NAK codes: */
         case PHPAL_MIFARE_RESP_NAK0:
             status = PHPAL_MIFARE_ERR_NAK0;
@@ -162,6 +166,7 @@ phStatus_t phpalMifare_Sw_ExchangeL3(
             status = PH_ERR_PROTOCOL_ERROR;
             break;
         }
+		printf("statusACK %02x\n", status);
     }
     /* Normal data stream with CRC */
     else
@@ -455,6 +460,7 @@ phStatus_t phpalMifare_Sw_ExchangeRaw(
         wTxLength,
         ppRxBuffer,
         pRxLength);
+	printf("phpalMifare_Sw_ExchangeRaw phhalHw_Exchange %02x\n", status);
 
     /* Return if no real exchange is done */
     if (wOption & PH_EXCHANGE_BUFFERED_BIT)

@@ -44,6 +44,11 @@ phStatus_t phalMfc_Sw_Read(
                            uint8_t bBlockNo,
                            uint8_t * pBlockData
                            );
+                           
+phStatus_t phalMfulc_Sw_Auth(
+							phalMfc_Sw_DataParams_t * pDataParams,
+							uint8_t * pBlockData
+							);
 
 phStatus_t phalMfc_Sw_ReadValue(
                                 phalMfc_Sw_DataParams_t * pDataParams,
