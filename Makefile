@@ -77,7 +77,7 @@ des.o
 OBJS:= ${OBJS-Y:%.o=${OBJ_DIR}/%.o}
 
 #export CFLAGS:=-Wall ${EXTRA_FLAGS} -O0 -g
-export CFLAGS:=${EXTRA_FLAGS} -O0 -Wall
+export CFLAGS:=${EXTRA_FLAGS} -O0
 
 vpath %.c $(SRC_DIR)
 

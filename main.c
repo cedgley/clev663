@@ -171,6 +171,12 @@ static void PRINT_BUFF(uint8_t *hex, uint8_t num)
 #define NUMBER_OF_KEYVERSIONPAIRS   2
 #define NUMBER_OF_KUCENTRIES        1
 
+#define LOOP_DETECT		1
+#define LOOP_WRITE		2
+#define LOOP_ERASE		3
+#define LOOP_READ		4
+#define LOOP_QUIT		5
+
 // Forward declarations
 static void Fill_Block (uint8_t *pBlock, uint8_t MaxNr);
 
@@ -179,42 +185,6 @@ static /* const */ uint8_t Key[6] = {0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU};
 
 // Don't change the following line
 static /* const */ uint8_t Original_Key[6] = {0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU};
-
-/* Set the key for the Mifare (R) Ultralight C cards. */
-/*static*/ /* const */ /*uint8_t KeyUC[16] =	{
-										0x49U, 0x45U, 0x4DU, 0x4BU, \
-										0x41U, 0x45U, 0x52U, 0x42U, \
-										0x21U, 0x4EU, 0x41U, 0x43U, \
-										0x55U, 0x4FU, 0x59U, 0x46U
-										};*/
-										
-static /* const */ uint8_t KeyULC1[8] =	{
-										0x49U, 0x45U, 0x4DU, 0x4BU, \
-										0x41U, 0x45U, 0x52U, 0x42U
-										};
-										
-static /* const */ uint8_t KeyULC2[8] =	{
-										0x21U, 0x4EU, 0x41U, 0x43U, \
-										0x55U, 0x4FU, 0x59U, 0x46U
-										};
-										
-static /* const */ uint8_t KeyULC3[24] = {
-										 0x49U, 0x45U, 0x4DU, 0x4BU, \
-										 0x41U, 0x45U, 0x52U, 0x42U, \
-										 0x21U, 0x4EU, 0x41U, 0x43U, \
-										 0x55U, 0x4FU, 0x59U, 0x46U, \
-										 0x49U, 0x45U, 0x4DU, 0x4BU, \
-										 0x41U, 0x45U, 0x52U, 0x42U
-										 };
-										
-
-// Don't change the following line
-/*static*/ /* const */ /*uint8_t Original_KeyUC[16] = {
-												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
-												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
-												0xFFU, 0xFFU, 0xFFU, 0xFFU, \
-												0xFFU, 0xFFU, 0xFFU, 0xFFU
-												};*/
 
 /***********************************************************************************************
  * \brief     Prints the UID.
@@ -249,32 +219,6 @@ static void Fill_Block(uint8_t *pBlock, uint8_t MaxNr)
         *pBlock++ = i + 0x20;
         }
     }
-    
-/***********************************************************************************************
- * \brief      This function encrypts an 8B number with DES.
- *
- *
- **********************************************************************************************/
-uint8_t * Encrypt(uint8_t *Key, uint8_t *Msg, int size)
-{
- 
-        static uint8_t*  Res;
-        int              n = 0;
-        DES_cblock		 Key2;
-        DES_key_schedule schedule;
- 
-        Res = (uint8_t *)malloc(size);
- 
-        /* Prepare the key for use with DES_cfb64_encrypt */
-        memcpy(Key2, Key, 8);
-        DES_set_odd_parity(&Key2);
-        DES_set_key_checked(&Key2, &schedule);
- 
-        /* Encryption occurs here */
-        DES_cfb64_encrypt((uint8_t *) Msg, (uint8_t *) Res, size, &schedule, &Key2, &n, DES_ENCRYPT );
- 
-        return (Res);
-}
 
 /***********************************************************************************************
  * \brief      Initializes the discover loop component
@@ -377,44 +321,84 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
     uint16_t      wNumberOfTags=0;
     uint8_t       bGtLen=0;    /* Gt length */
     uint8_t       bUid[PHAC_DISCLOOP_I3P3A_MAX_UID_LENGTH];
+    uint8_t       bUidLock[PHAC_DISCLOOP_I3P3A_MAX_UID_LENGTH];
     uint8_t       bUidSize;
  /* uint8_t		  bDataWrite[4]		 = {0x00U, 0x00U, 0x00U, 0x00U};*/
-    uint8_t		  bDataWriteTest[16] = {0x74U, 0x65U, 0x63U, 0x6dU, \
-										0x69U, 0x63U, 0x20U, 0x78U, \
-										0x73U, 0x65U, 0x61U, 0x6cU, \
-										0x65U, 0x6eU, 0x63U, 0x65U};
+    uint8_t		  bDataWriteTest1[16] = {0x74U, 0x65U, 0x63U, 0x6dU, \
+										 0x69U, 0x63U, 0x20U, 0x78U, \
+										 0x73U, 0x65U, 0x61U, 0x6cU, \
+										 0x65U, 0x6eU, 0x63U, 0x65U  }; /**Example text to write. Could be an id serial number*/
+										
+    uint8_t		  bDataWriteTest2[16] = {0x73U, 0x65U, 0x72U, 0x69, \
+										 0x61U, 0x6cU, 0x6eU, 0x6f, \
+										 0x31U, 0x32U, 0x33U, 0x34, \
+										 0x35U, 0x36U, 0x37U, 0x38  }; /**serialno12345678*/
+										 
+    uint8_t		  bDataWriteTest3[16] = {0x00U, 0x00U, 0x00U, 0x00U, \
+										 0x00U, 0x00U, 0x00U, 0x00U, \
+										 0x00U, 0x00U, 0x00U, 0x00U, \
+										 0x00U, 0x00U, 0x00U, 0x00U  };
+	uint16_t	  keytmp[24];
     int page;
+    int timeoutcheck = 0;
     int shutdown = 0;
+    int first 	 = 1;
+    int flag	 = 0;
     int cont     = 0;
     char opt;
+    int res;
+    int i;
+    char buffer[64];
     
 
     PH_UNUSED_VARIABLE(bGtLen);
     
-    /*while(!cont){
-		printf("w - write\nd - detect\ne - exit\n");
-		scanf("%c", &opt);
-		switch(opt)
+	while(!shutdown)
+	{
+		if(flag)
 		{
-			case 'w':
-				printf("Not yet implemented\n");
-				break;
-			case 'd':
-				cont = 1;
-				break;
-			case 'e':
-				shutdown = 1;
-				cont = 1;
-				break;
-			default:
-				printf("Please choose: w d e\n");
-				cont = 0;
-				break;
+			printf("WARNING! DIFF UID! FLAG RAISED!\n");
+			shutdown = 1;
+			continue;
 		}
-	}*/
+		if(timeoutcheck)
+		{
+			printf("WARNING! TIMEOUT! FLAG RAISED!\n");
+			shutdown = 1;
+			continue;
+		}
+		timeoutcheck = 1; /*Timeout check needs an ultralight card to set it to 0*/
+    
+		while(!cont){
+			printf("d - detect\nw - write\ne - erase\nr - read\nq - quit\n");
+			scanf(" %c", &opt);
+			switch(opt)
+			{
+				case 'd':
+					cont = LOOP_DETECT;
+					break;
+				case 'w':
+					cont = LOOP_WRITE;
+					break;
+				case 'e':
+					cont = LOOP_ERASE;
+					break;
+				case 'r':
+					cont = LOOP_READ;
+					break;
+				case 'q':
+					shutdown = 1;
+					cont = LOOP_QUIT;
+					break;
+				default:
+					printf("Please choose: d w e r q\n");
+					cont = 0;
+					break;
+			}
+		}
+		
+		if(cont == LOOP_QUIT) continue;
 
-    while(!shutdown)
-        {
         DEBUG_PRINTF("Ready to detect.");
         DEBUG_FLUSH('\n');
 
@@ -552,38 +536,16 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                             }
                         else if (0x00 == (pDataParams->sTypeATargetInfo.aTypeA_I3P3[loop].aSak[0] & 0xff))
                             {
-                            DEBUG_PRINTF("\nProduct: MIFARE Ultralight C\n");
+                            if(cont != LOOP_DETECT)
+                            {
+								DEBUG_PRINTF("\nProduct: MIFARE Ultralight C\n");
 
-                            /*DEBUG_PRINTF("\nThe original key is:                ");
-                            PRINT_BUFF(&Original_KeyUC[0], 16);
-                            DEBUG_PRINTF("\nThe used key for authentication is: ");
-                            PRINT_BUFF(&KeyUC[0], 16);*/
-
-                            /* load a Key to the Store */
-                            /* Note: If You use Key number 0x00, be aware that in SAM
-                              this Key is the 'Host authentication key' !!! */
-                            /*status = phKeyStore_FormatKeyEntry(&SwkeyStore, 1, PH_KEYSTORE_KEY_TYPE_2K3DES);
-                            CHECK_STATUS(status);*/
-
-                            /* First step for us is to authenticate with the Key at the Mifare
-                             * Classic in the field.
-                             * You need to authenticate at any block of a sector and you
-                             * may get access to all other blocks of the sector.
-                             * For example authenticating at block 5 you will get access to
-                             * the blocks 4, 5, 6, 7.
-                             */
-                            /* Mifare Ultralight C card, set Key Store */
-                            /*status = phKeyStore_SetKey(&SwkeyStore, 1, 0, PH_KEYSTORE_KEY_TYPE_2K3DES, &KeyUC[0], 0);
-                            CHECK_STATUS(status);*/
-
-                           /* DEBUG_PRINTF("\nSet Key Store successful\n");*/
-
-                            /* Initialize the Mifare (R) Classic AL component - set NULL because
-                             * the keys are loaded in E2 by the function */
-                            /* phKeyStore_SetKey */
-                            /*status = phalMfc_Sw_Init(&alMfc, sizeof(phalMfc_Sw_DataParams_t), &palMifare, &SwkeyStore);
-                            CHECK_STATUS(status);*/
-                            //DEBUG_PRINTF("\nMfc_Sw_Init successful\n");
+								DEBUG_PRINTF("\nThe used key for authentication is: \n");
+								PRINT_BUFF((uint8_t *) phalMfulc_Sw_GetKey(keytmp), 24);
+								puts("");
+							}
+							
+                            /* Initialize the Mifare (R) Ultralight AL component */
                             
                             status = phalMfulc_Sw_Init(&alMfc, sizeof(phalMfc_Sw_DataParams_t), &palMifare);
                             CHECK_STATUS(status);
@@ -592,56 +554,99 @@ phStatus_t DiscLoopDemo( phacDiscLoop_Sw_DataParams_t  *pDataParams )
                             bUidSize = pDataParams->sTypeATargetInfo.aTypeA_I3P3[0].bUidSize;
                             memcpy( bUid, pDataParams->sTypeATargetInfo.aTypeA_I3P3[0].aUid, bUidSize );  /* PRQA S 3200 */
                             
-/**/						/*DEBUG_PRINTF("\nAuthenticating\n");
+/**/						DEBUG_PRINTF("Authenticating\n");
 							status = phalMfulc_Auth(&alMfc, bDataBuffer);
-                            CHECK_STATUS(status);*/
+							CHECK_STATUS(status);
 
                             if ((status & PH_ERR_MASK) != PH_ERR_SUCCESS)
                                 {
-                                DEBUG_PRINTF("\n!!! Authentication was not successful.");
+                                DEBUG_PRINTF("!!! Authentication was not successful.");
                                 DEBUG_PRINTF("\nPlease correct the used key");
                                 DEBUG_PRINTF("\nAbort of execution");
                                 }
                             else
                                 {
-                                /*DEBUG_PRINTF("\nAuthentication successful\n");*/
-                                page = 8;
+									timeoutcheck = 0; /*Auth successful, means that we don't want timeout*/
+									DEBUG_PRINTF("Authentication successful\n");
+									if(cont == LOOP_DETECT)
+									{
+										if(first)
+										{
+											first = 0;
+											memcpy(bUidLock, bUid, bUidSize);
+										}
+										for(i = 0; i < 7; i++)
+										{
+											if(bUidLock[i] != bUid[i]) flag = 1;
+										}
+										
+										PH_CHECK_SUCCESS_FCT(status, phalMfc_Read(&alMfc, 36, bDataBuffer));
+										for(i = 0; i < 16; i++)
+										{
+											if(bDataBuffer[i] != bDataWriteTest2[i]) flag = 1;
+										}
+									}
 
-                                /* Mifare Classic card, send authentication for sector 1 */
-                                //status = phalMfc_Authenticate(&alMfc, 6, PHHAL_HW_MFC_KEYA, 1, 0, bUid, bUidSize);
-                                
+									/* Mifare Classic card, send authentication for sector 1 */
+									//status = phalMfc_Authenticate(&alMfc, 6, PHHAL_HW_MFC_KEYA, 1, 0, bUid, bUidSize);
+									
 
-                                /* fill block with data */
-                                Fill_Block(bDataBuffer, 15);
-                                memset(bDataBuffer, '\0', DATA_BUFFER_LEN);
+									/* fill block with data */
+									/*memcpy(bDataBuffer, bDataWriteTest1, 16);*/
+									if(cont == LOOP_WRITE) memcpy(bDataBuffer, bDataWriteTest2, 16); /*Fills with 00 to 0F*/
+									if(cont == LOOP_ERASE) memcpy(bDataBuffer, bDataWriteTest3, 16); /*Fills with zeros*/
 
-								memcpy(bDataBuffer, bDataWriteTest, 16);
+									/* Write data @ block %page */
+									if(cont == LOOP_WRITE || cont == LOOP_ERASE)
+									{	
+										printf("Select page: ");
+										scanf("%d", &page);
+										puts("");
+										if(cont == LOOP_WRITE)
+										{
+											memset(bDataBuffer, '\0', DATA_BUFFER_LEN);
+											printf("Type 16 Bytes: \n");
+											res = scanf(" %s", buffer);
+											if(res <= 16) memcpy(bDataBuffer, buffer, 16);
+										}
+										/*This function writes 4 blocks = 16 Bytes*/
+										PH_CHECK_SUCCESS_FCT(status, phalMfc_Write_Block(&alMfc, page, bDataBuffer));
+										DEBUG_PRINTF("\nSuccessfully wrote 16 bytes");
+									}
+									
+									/*This function writes only one block instead of 4*/
+									/*PH_CHECK_SUCCESS_FCT(status, phalMfc_Write(&alMfc, page, bDataBuffer));
+									DEBUG_PRINTF("\nWrite successful 4 bytes");*/
 
-                                /* Write data @ block %page */
-                                //PH_CHECK_SUCCESS_FCT(status, phalMfc_Write_Block(&alMfc, page, bDataBuffer));
-                                //DEBUG_PRINTF("\nWrite successful 16 bytes");
+									/* Empty the bDataBuffer */
+									memset(bDataBuffer, '\0', DATA_BUFFER_LEN);
 
-                                /* Empty the bDataBuffer */
-                                memset(bDataBuffer, '\0', DATA_BUFFER_LEN);
+									/* Read the just one page of data.
+									 * In one reading action we always get the whole Block. */
+									/*DEBUG_PRINTF("\nReading\n");
+									PH_CHECK_SUCCESS_FCT(status, phalMfc_Read(&alMfc, page, bDataBuffer));*/
+									
+									/* Reads all of the data */
+									if(cont == LOOP_READ)
+									{
+										DEBUG_PRINTF("\nDisplaying all memory\n");
+										for(i = 0; i < 0xB; i++) /*There are only 0x30 blocks, and we read 4 each time*/
+										{
+											PH_CHECK_SUCCESS_FCT(status, phalMfc_Read(&alMfc, i*4, bDataBuffer));
 
-                                /* Read the just written data.
-                                 * In one reading action we always get the whole Block.
-                                 */
-                                DEBUG_PRINTF("\nReading\n");
-                                PH_CHECK_SUCCESS_FCT(status, phalMfc_Read(&alMfc, page, bDataBuffer));
-
-                                DEBUG_PRINTF("The content of Block %d is:\n", page);
-                                for (loop = 0; loop < 4; loop++)
-								{
-                                    PRINT_BUFF(&bDataBuffer[loop*4], 4);
-                                    DEBUG_PRINTF("\n");
-								}
-/**/							DEBUG_PRINTF("\nAuthenticating\n");
-								status = phalMfulc_Auth(&alMfc, bDataBuffer);
-								CHECK_STATUS(status);
+											for (loop = 0; loop < 4; loop++)
+											{
+												DEBUG_PRINTF("%02d | ", i*4 + loop);
+												PRINT_BUFF(&bDataBuffer[loop*4], 4);
+												printf("  |  %c %c %c %c", bDataBuffer[loop*4], bDataBuffer[loop*4+1], bDataBuffer[loop*4+2], bDataBuffer[loop*4+3]);
+												DEBUG_PRINTF("\n");
+											}
+										}
+									}
 
                                 }
-                                shutdown = 1;
+                                //shutdown = 1;
+                                if(cont != LOOP_DETECT) cont = 0;
                             }
                         else
                             {
@@ -716,7 +721,7 @@ int main (void)
 {
     phStatus_t  status;
 
-    DEBUG_PRINTF("\nStart Example: Classic\n");
+    DEBUG_PRINTF("\nStart Example: RFID reader\n");
     /* Initialize GPIO (sets up clock) */
     GPIO_Init();
 
@@ -767,7 +772,7 @@ int main (void)
 		return 0;
 	}
     CHECK_STATUS(status);
-    DEBUG_PRINTF("\nReader chip RC663: 0x%02x\n", bDataBuffer[0]);
+    DEBUG_PRINTF("Reader chip RC663: 0x%02x\n", bDataBuffer[0]);
 #endif
 
     /* Initializing specific objects for the communication with
@@ -852,33 +857,6 @@ int main (void)
 
     status = phbalReg_ClosePort(&balReader);
     CHECK_SUCCESS(status);
-    
-	/**uint8_t ex1[8] = {0x51, 0xE7, 0x64, 0x60, 0x26, 0x78, 0xDF, 0x2B};
-	unsigned char schedule[3][16][6];
-	uint8_t res1[8];
-	uint8_t res2[8];
-	uint8_t res3[8];
-	
-    int i;
-    printf("Original:");
-	for (i = 0; i < 8; i++) printf(" %02X", ex1[i]);
-	puts("");
-	
-	key_schedule((unsigned char *) KeyULC1, schedule, 1);
-	des_crypt((unsigned char *) ex1, (unsigned char *) res1, schedule);
-	
-	key_schedule((unsigned char *) KeyULC2, schedule, 0);
-	des_crypt((unsigned char *) res1, (unsigned char *) res2, schedule);
-	
-	key_schedule((unsigned char *) KeyULC1, schedule, 1);
-	des_crypt((unsigned char *) res2, (unsigned char *) res3, schedule);
-	
-	three_des_key_schedule((unsigned char *) KeyULC3, schedule, 1);
-	three_des_crypt((unsigned char *) ex1, (unsigned char *) res1, schedule);
-	
-	printf("Encrypted:");
-	for (i = 0; i < 8; i++) printf(" %02X", res1[i]);
-	puts("");*/
 
     return 0;
 }

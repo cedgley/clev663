@@ -52,6 +52,9 @@ typedef struct
     void * pKeyStoreDataParams;     /**< Pointer to the parameter structure of the KeyStore component. */
 } phalMfc_Sw_DataParams_t;
 
+
+uint16_t * phalMfulc_Sw_GetKey();
+
 /**
 * \brief Initialise this layer.
 * \return Status code
@@ -101,6 +104,7 @@ phStatus_t phalMfulc_Sw_Init(
 */
 /*@{*/
 #define PHAL_MFULC_CHALL1_LENGTH      9U     /**< Length of a MIFARE(R) Ultralight first challenge. */
+#define PHAL_MFULC_CHALL2_RESP		  0x00U  /**< Response of a MIFARE(R) Ultralight last challenge. */
 /*@}*/
 
 /**

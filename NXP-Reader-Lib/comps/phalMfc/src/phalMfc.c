@@ -279,8 +279,8 @@ phStatus_t phalMfc_Write_Block(
 	{
 		memcpy(pBlockDataWrite, &pBlockData[i*4], 4);
 		status = phalMfc_Write(pDataParams, bBlockNo + i, pBlockDataWrite);
-		for(j = 0; j < 4; j++) printf(" %02X", pBlockDataWrite[j]);
-		printf("\n");
+		/*for(j = 0; j < 4; j++) printf(" %02X", pBlockDataWrite[j]);
+		printf("\n");*/
 	}
 
 		//status = 0;

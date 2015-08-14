@@ -76,6 +76,7 @@ phStatus_t phpalMifare_Sw_ExchangeL3(
     uint16_t    PH_MEMLOC_REM wCrcCalc;
 	uint16_t	PH_MEMLOC_REM RxLength;
 	uint8_t *	PH_MEMLOC_REM pRxBuffer;
+	int debug = 0;
 
 	/* Check if caller has provided valid RxBuffer */
 	if (ppRxBuffer == NULL)
@@ -114,7 +115,7 @@ phStatus_t phpalMifare_Sw_ExchangeL3(
     /* ACK/NAK Handling */
     if ((status & PH_ERR_MASK) == PH_ERR_SUCCESS_INCOMPLETE_BYTE)
     {
-		puts("ACKNAK");
+		if(debug) puts("ACKNAK");
         /* Check for protocol error */
         if (*pRxLength != 1)
         {
@@ -130,7 +131,7 @@ phStatus_t phpalMifare_Sw_ExchangeL3(
             return PH_ADD_COMPCODE(PH_ERR_PROTOCOL_ERROR, PH_COMP_PAL_MIFARE);
         }
         /* ACK/NAK Mapping */
-		printf("(*ppRxBuffer)[0] %02x\n", (*ppRxBuffer)[0]);
+		if(debug) printf("(*ppRxBuffer)[0] %02x\n", (*ppRxBuffer)[0]);
         switch ((*ppRxBuffer)[0])
         {
             /* ACK -> everything OK */
@@ -166,7 +167,7 @@ phStatus_t phpalMifare_Sw_ExchangeL3(
             status = PH_ERR_PROTOCOL_ERROR;
             break;
         }
-		printf("statusACK %02x\n", status);
+		if(debug) printf("statusACK %02x\n", status);
     }
     /* Normal data stream with CRC */
     else

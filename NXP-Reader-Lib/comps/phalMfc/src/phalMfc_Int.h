@@ -49,6 +49,7 @@
 #define PHAL_MFC_CMD_PERSOUID   0x40    /**< MIFARE Classic Personalize UID command */
 
 #define PHAL_MFULC_CMD_AUTH     0x1A    /**< MIFARE Ultralight Authenticate command byte */
+#define PHAL_MFULC_CMD_AUTH2    0xAF    /**< MIFARE Ultralight Authenticate step 2 byte */
 
 /**
 * \brief Perform MIFARE(R) Transfer command with MIFARE Picc.

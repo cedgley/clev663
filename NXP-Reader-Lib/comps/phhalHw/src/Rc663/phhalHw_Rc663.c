@@ -241,6 +241,7 @@ phStatus_t phhalHw_Rc663_Exchange(
     uint8_t *   PH_MEMLOC_REM pTmpBuffer;
     uint16_t    PH_MEMLOC_REM wTmpBufferLen;
     uint16_t    PH_MEMLOC_REM wTmpBufferSize;
+    int debug = 0;
     int i;
 
     /* Check options */
@@ -260,9 +261,9 @@ phStatus_t phhalHw_Rc663_Exchange(
     {
         *pRxLength = 0;
     }
-/**/	printf("%dpTxBuffer", wTxLength);
-        for(i = 0; i < wTxLength; i++) printf(" %02x", pTxBuffer[i]);
-        printf("\n");
+/**/	if(debug){printf("%dpTxBuffer", wTxLength);
+        for(i = 0; i < wTxLength; i++) printf(" %02x", pTxBuffer[i]); /*Useful for checking what was sent*/
+        printf("\n");}
 
 
     /* Fill the global TxBuffer */
@@ -665,7 +666,7 @@ phStatus_t phhalHw_Rc663_Exchange(
     {
         /* Retrieve valid bits of last byte */
         PH_CHECK_SUCCESS_FCT(statusTmp, phhalHw_ReadRegister(pDataParams, PHHAL_HW_RC663_REG_RXBITCTRL, &bRegister));
-        printf("bRegister %02x\n", (uint16_t)bRegister);
+        if(debug) printf("bRegister %02x\n", (uint16_t)bRegister); /*Useful for checking what was received*/
 
         /* Mask out valid bits of last byte */
         bRegister &= PHHAL_HW_RC663_MASK_RXLASTBITS;
@@ -699,9 +700,9 @@ phStatus_t phhalHw_Rc663_Exchange(
     {
         *ppRxBuffer = pDataParams->pRxBuffer;
         
-/**/	printf("%dppRxBuffer", pDataParams->wRxBufLen);
+/**/	if(debug){printf("%dppRxBuffer", pDataParams->wRxBufLen); /*Useful for checking what was received*/
         for(i = 0; i < pDataParams->wRxBufLen; i++) printf(" %02x", ppRxBuffer[0][i]);
-        printf("\n");
+        printf("\n");}
     }
 
     /* Return RxBuffer length */

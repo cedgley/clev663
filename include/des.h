@@ -10,16 +10,16 @@
 ******************************************/
 
 #define uchar unsigned char
-#define uint unsigned int
+/*#define uint unsigned int*/
 
-void key_schedule(uchar key[], uchar schedule[][6], uint mode);
+void key_schedule(uchar key[], uchar schedule[][6], unsigned int mode);
 
 // Initial (Inv)Permutation step
-void IP(uint state[], uchar in[]);
+void IP(unsigned int state[], uchar in[]);
 
-void InvIP(uint state[], uchar in[]);
+void InvIP(unsigned int state[], uchar in[]);
 
-uint f(uint state, uchar key[]);
+unsigned int f(unsigned int state, uchar key[]);
 
 void des_crypt(uchar in[], uchar out[], uchar key[][6]);
 
@@ -27,7 +27,7 @@ void des_crypt(uchar in[], uchar out[], uchar key[][6]);
              3DES functions
 **************************************/
 
-void three_des_key_schedule(uchar key[], uchar schedule[][16][6], uint mode);
+void three_des_key_schedule(uchar key[], uchar schedule[][16][6], unsigned int mode);
 
 void three_des_crypt(uchar in[], uchar out[], uchar key[][16][6]);
 

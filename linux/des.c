@@ -173,7 +173,7 @@ void InvIP(uint state[], uchar in[])
 
 uint f(uint state, uchar key[])
 {
-   uchar lrgstate[6],i;
+   uchar lrgstate[6];
    uint t1,t2;
 
    // Expantion Permutation

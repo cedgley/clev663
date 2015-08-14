@@ -1,5 +1,4 @@
 /home/chris/Desktop/clev663/obj/main.o: main.c \
- /home/chris/Desktop/clev663/include/des.h \
  /home/chris/Desktop/clev663/include/phhwConfig.h \
  /home/chris/Desktop/clev663/NXP-Reader-Lib/intfs/phhalHw.h \
  /home/chris/Desktop/clev663/NXP-Reader-Lib/types/ph_Status.h \
@@ -26,8 +25,6 @@
  /home/chris/Desktop/clev663/NXP-Reader-Lib/intfs/phalFelica.h \
  /home/chris/Desktop/clev663/NXP-Reader-Lib/intfs/phalMfc.h \
  /home/chris/Desktop/clev663/NXP-Reader-Lib/intfs/phKeyStore.h
-
-/home/chris/Desktop/clev663/include/des.h:
 
 /home/chris/Desktop/clev663/include/phhwConfig.h:
 
